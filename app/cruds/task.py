@@ -77,17 +77,6 @@ def patch(request: TaskUpdate, task_id: str, db: Session):
     return task_response(task)
 
 
-def add_authority(request: list[str], task_id: str, db: Session):
-    task = db.get(Task, task_id)
-    new_authority = []
-    for authority_id in request:
-        authority = db.get(Authority, authority_id)
-        new_authority.append(authority)
-    task.authority = list(set(new_authority))
-    db.commit()
-    return task
-
-
 def add_tag(request: list[str], task_id: str, db: Session):
     task = db.get(Task, task_id)
     new_tag = []

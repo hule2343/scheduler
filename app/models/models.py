@@ -4,36 +4,14 @@ from typing import Optional
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 import uuid
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, time
 import enum
-
-authority_table = Table(
-    "authority_table",
-    Base.metadata,
-    Column("task", ForeignKey("task.id"), primary_key=True),
-    Column("authority", ForeignKey("authority.id"), primary_key=True),
-)
 
 tag_table = Table(
     "tasktag_table",
     Base.metadata,
     Column("task", ForeignKey("task.id"), primary_key=True),
     Column("tasktag", ForeignKey("tasktag.id"), primary_key=True),
-)
-
-template_table = Table(
-    "template_table",
-    Base.metadata,
-    Column("template", ForeignKey("template.id")),
-    Column("slot", ForeignKey("slot.id")),
-)
-
-
-achivement_table = Table(
-    "achivement_table",
-    Base.metadata,
-    Column("user", ForeignKey("user.id"), primary_key=True),
-    Column("achivement", ForeignKey("achivement.id"), primary_key=True),
 )
 
 experience_table = Table(
@@ -51,35 +29,6 @@ slots_table = Table(
 )
 
 
-class Achivement(Base):
-    __tablename__ = "achivement"
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
-    term: Mapped[int]
-    name: Mapped[str] = mapped_column(String(20))
-    user: Mapped[Optional[list["User"]]] = relationship(
-        secondary=achivement_table, back_populates="achivement"
-    )
-
-
-class Method(str, enum.Enum):
-    GET = "GET"
-    POST = "POST"
-    PUT = "PUT"
-    PATCH = "PATCH"
-    DELETE = "DELETE"
-
-
-class Authority(Base):
-    __tablename__ = "authority"
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
-    name: Mapped[str] = mapped_column(String(50))
-    url: Mapped[str] = mapped_column(String(30))
-    method: Mapped["Method"]
-    task: Mapped[Optional[list["Task"]]] = relationship(
-        secondary=authority_table, back_populates="authority"
-    )
-
-
 class Bid(Base):
     __tablename__ = "bid"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -91,7 +40,7 @@ class Bid(Base):
     )
     slot: Mapped["Slot"] = relationship(back_populates="bid")
     is_complete: Mapped[bool] = mapped_column(default=False)
-    bidder: Mapped[Optional[list["Bidder"]]] = relationship(
+    bidders: Mapped[Optional[list["Bidder"]]] = relationship(
         back_populates="bid", cascade="all,delete"
     )
 
@@ -101,11 +50,11 @@ class Bidder(Base):
     bid_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("bid.id", ondelete="CASCADE"), primary_key=True
     )
-    bid: Mapped["Bid"] = relationship(back_populates="bidder")
+    bid: Mapped["Bid"] = relationship(back_populates="bidders")
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user.id", ondelete="CASCADE"), primary_key=True
     )
-    user: Mapped["User"] = relationship(back_populates="bid")
+    user: Mapped["User"] = relationship(back_populates="bids")
     point: Mapped[int] = mapped_column(default=0)
     is_canceled: Mapped[bool] = mapped_column(default=False)
 
@@ -128,12 +77,9 @@ class Slot(Base):
     task_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("task.id", ondelete="CASCADE")
     )
-    task: Mapped["Task"] = relationship(back_populates="slot", uselist=False)
+    task: Mapped["Task"] = relationship(back_populates="slots", uselist=False)
     bid: Mapped[Optional["Bid"]] = relationship(
-        back_populates="slot", uselist=False,cascade="all,delete"
-    )
-    template: Mapped[list["Template"]|None] = relationship(
-        secondary=template_table, back_populates="slots"
+        back_populates="slot", uselist=False, cascade="all,delete"
     )
 
 
@@ -147,11 +93,11 @@ class Task(Base):
     exp_woker_num: Mapped[int] = mapped_column(default=0)  # 必要な経験者の人数
     start_point: Mapped[int] = mapped_column(default=0)
     buyout_point: Mapped[int] = mapped_column(default=0)
-    slot: Mapped[list["Slot"]|None] = relationship(
+    slots: Mapped[list["Slot"] | None] = relationship(
         back_populates="task", cascade="all,delete"
     )
-    expert: Mapped[Optional[list["User"]]] = relationship(
-        secondary=experience_table, back_populates="exp_task"
+    experts: Mapped[Optional[list["User"]]] = relationship(
+        secondary=experience_table, back_populates="exp_tasks"
     )
     creater_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         ForeignKey("user.id", ondelete="SET NULL")
@@ -159,11 +105,14 @@ class Task(Base):
     creater: Mapped[Optional["User"]] = relationship(
         back_populates="create_task"
     )
-    authority: Mapped[Optional[list["Authority"]]] = relationship(
-        secondary=authority_table, back_populates="task"
-    )
     tag: Mapped[Optional[list["TaskTag"]]] = relationship(
-        secondary=tag_table, back_populates="task", lazy="joined"
+        secondary=tag_table, back_populates="tasks", lazy="joined"
+    )
+    group_id:Mapped[uuid.UUID]=mapped_column(
+        ForeignKey("group.id",ondelete="SET NULL")
+    )
+    group:Mapped["Group"]=relationship(
+        back_populates="tasks"
     )
 
 
@@ -171,30 +120,64 @@ class TaskTag(Base):
     __tablename__ = "tasktag"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(10))
-    task: Mapped[Optional[list["Task"]]] = relationship(
+    tasks: Mapped[Optional[list["Task"]]] = relationship(
         secondary=tag_table, back_populates="tag"
     )
+
+
+class TaskTemplate(Base):
+    __tablebane__ = "tasktemplate"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
+    template_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("template.id", ondelete="CASCADE")
+    )
+    template: Mapped["Template"] = relationship(back_populates="tasktemplates")
+    task_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("task.id", ondelete="CASCADE")
+    )
+    task: Mapped["Task"] = relationship(back_populates="tasktemplates")
+    date_from_start: Mapped[int] = mapped_column(default=0)
+    time: Mapped[time]
 
 
 class Template(Base):
     __tablename__ = "template"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(20))
-    slots: Mapped[Optional[list["Slot"]]] = relationship(
-        secondary=template_table, back_populates="template"
+    tasktemplates: Mapped[Optional[list["TaskTemplate"]]] = relationship(
+        back_populates="template"
     )
 
 
-class Block(str, enum.Enum):
-    A1 = "A1"
-    A2 = "A2"
-    A3 = "A3"
-    A4 = "A4"
-    B12 = "B12"
-    B3 = "B3"
-    B4 = "B4"
-    C12 = "C12"
-    C34 = "C34"
+class Group(Base):
+    __tablename__ = "group"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
+    users: Mapped[list["GroupUser"]] = relationship(
+        back_populates="group",
+    )
+    tasks: Mapped[list["Task"]] = relationship(
+        back_populates="group",
+    )
+
+
+class Role(enum.Enum):
+    admin = "admin"
+    super = "super"
+    normal = "normal"
+
+
+class GroupUser(Base):
+    __tablename__ = "groupuser"
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("group.id", ondelete="CASCADE"), primary_key=True
+    )
+    group: Mapped["Group"] = relationship(back_populates="users")
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), primary_key=True
+    )
+    user: Mapped["User"] = relationship(back_populates="groups")
+    point: Mapped[int] = mapped_column(default=0)
+    role: Mapped["Role"]
 
 
 class User(Base):
@@ -202,13 +185,12 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(20))
     password: Mapped[str] = mapped_column(String(400))
-    block: Mapped["Block"]
     room_number: Mapped[str] = mapped_column(String(10))
-    achivement: Mapped[Optional[list["Achivement"]]] = relationship(
-        secondary=achivement_table, back_populates="user"
+    group: Mapped[list["GroupUser"]] = relationship(
+        back_populates="user", cascade="all"
     )
-    exp_task: Mapped[Optional[list["Task"]]] = relationship(
-        secondary=experience_table, back_populates="expert"
+    exp_tasks: Mapped[Optional[list["Task"]]] = relationship(
+        secondary=experience_table, back_populates="experts"
     )
     slots: Mapped[Optional[list["Slot"]]] = relationship(
         secondary=slots_table, back_populates="assignees"
@@ -219,11 +201,10 @@ class User(Base):
     create_task: Mapped[Optional[list["Task"]]] = relationship(
         back_populates="creater"
     )
-    point: Mapped[int] = mapped_column(default=0)
-    bid: Mapped[Optional[list["Bidder"]]] = relationship(
+    bids: Mapped[Optional[list["Bidder"]]] = relationship(
         back_populates="user", cascade="all"
     )
     is_active: Mapped[bool] = mapped_column(default=True)
 
     def has_exp(self, task: Task):
-        return task in self.exp_task
+        return task in self.exp_tasks

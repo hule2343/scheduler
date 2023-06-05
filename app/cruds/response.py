@@ -1,47 +1,31 @@
-import datetime
-from fastapi import FastAPI, HTTPException, status
 from app.models.models import User
-from app.schemas.slot import SlotRequest
-from app.models.models import Slot, Bidder, Bid, Task, Template
+from app.models.models import Slot, Bidder, Bid, Task, Template, GroupUser
 from sqlalchemy.orm import Session
 from sqlalchemy.future import select
+from datetime import datetime
+
+
+def datetime_response(datetime: datetime):
+    return {
+        "year": datetime.year,
+        "month": datetime.month,
+        "day": datetime.day,
+        "hour": datetime.hour,
+        "minute": datetime.minute,
+    }
 
 
 def bid_response(bid: Bid):
     response = {
         "id": bid.id,
         "name": bid.name,
-        "open_time": {
-            "year": bid.open_time.year,
-            "month": bid.open_time.month,
-            "day": bid.open_time.day,
-            "hour": bid.open_time.hour,
-            "minute": bid.open_time.minute,
-        },
-        "close_time": {
-            "year": bid.close_time.year,
-            "month": bid.close_time.month,
-            "day": bid.close_time.day,
-            "hour": bid.close_time.hour,
-            "minute": bid.close_time.minute,
-        },
+        "open_time": datetime_response(bid.open_time),
+        "close_time": datetime_response(bid.close_time),
         "slot": {
             "id": bid.slot_id,
             "name": bid.slot.name,
-            "start_time": {
-                "year": bid.slot.start_time.year,
-                "month": bid.slot.start_time.month,
-                "day": bid.slot.start_time.day,
-                "hour": bid.slot.start_time.hour,
-                "minute": bid.slot.start_time.minute,
-            },
-            "end_time": {
-                "year": bid.slot.end_time.year,
-                "month": bid.slot.end_time.month,
-                "day": bid.slot.end_time.day,
-                "hour": bid.slot.end_time.hour,
-                "minute": bid.slot.end_time.minute,
-            },
+            "start_time": datetime_response(bid.slot.start_time),
+            "end_time": datetime_response(bid.slot.end_time),
             "assignees": [
                 {"id": user.id, "name": user.name}
                 for user in bid.slot.assignees
@@ -55,56 +39,11 @@ def bid_response(bid: Bid):
 
 
 def bids_response(bids: list[Bid]):
-    respone_bids = [
-        {
-            "id": bid.id,
-            "name": bid.name,
-            "open_time": {
-                "year": bid.open_time.year,
-                "month": bid.open_time.month,
-                "day": bid.open_time.day,
-                "hour": bid.open_time.hour,
-                "minute": bid.open_time.minute,
-            },
-            "close_time": {
-                "year": bid.close_time.year,
-                "month": bid.close_time.month,
-                "day": bid.close_time.day,
-                "hour": bid.close_time.hour,
-                "minute": bid.close_time.minute,
-            },
-            "slot": {
-                "id": bid.slot_id,
-                "name": bid.slot.name,
-                "start_time": {
-                    "year": bid.slot.start_time.year,
-                    "month": bid.slot.start_time.month,
-                    "day": bid.slot.start_time.day,
-                    "hour": bid.slot.start_time.hour,
-                    "minute": bid.slot.start_time.minute,
-                },
-                "end_time": {
-                    "year": bid.slot.end_time.year,
-                    "month": bid.slot.end_time.month,
-                    "day": bid.slot.end_time.day,
-                    "hour": bid.slot.end_time.hour,
-                    "minute": bid.slot.end_time.minute,
-                },
-                "assignees": [
-                    {"id": user.id, "name": user.name}
-                    for user in bid.slot.assignees
-                ],
-            },
-            "start_point": bid.slot.task.start_point,
-            "buyout_point": bid.slot.task.buyout_point,
-            "is_complete": bid.is_complete,
-        }
-        for bid in bids
-    ]
+    respone_bids = [bid_response(bid) for bid in bids]
     return respone_bids
 
 
-def bids_response_with_name(bids: list[Bid]):
+def bids_with_name_response(bids: list[Bid]):
     response = [
         {
             "id": bid.id,
@@ -116,13 +55,13 @@ def bids_response_with_name(bids: list[Bid]):
     return response
 
 
-def bids_response_for_user(bids: list[Bid], user: User, db: Session):
+def bids_for_user_response(bids: list[Bid], user: User, db: Session):
     respone_bids = bids_response(bids)
     for bid in respone_bids:
         bidder = db.scalars(
             select(Bidder)
             .filter(Bidder.bid_id == bid["id"], Bidder.user_id == user.id)
-            .join(Bid.bidder)
+            .join(Bid.bidders)
             .order_by(Bidder.point)
             .limit(1)
         ).first()
@@ -162,20 +101,8 @@ def slot_response(slot: Slot):
     response = {
         "id": slot.id,
         "name": slot.name,
-        "start_time": {
-            "year": slot.start_time.year,
-            "month": slot.start_time.month,
-            "day": slot.start_time.day,
-            "hour": slot.start_time.hour,
-            "minute": slot.start_time.minute,
-        },
-        "end_time": {
-            "year": slot.end_time.year,
-            "month": slot.end_time.month,
-            "day": slot.end_time.day,
-            "hour": slot.end_time.hour,
-            "minute": slot.end_time.minute,
-        },
+        "start_time": datetime_response(slot.start_time),
+        "end_time": datetime_response(slot.end_time),
         "assignees": [
             {"id": user.id, "name": user.name} for user in slot.assignees
         ],
@@ -186,32 +113,7 @@ def slot_response(slot: Slot):
 
 
 def slots_response(slots: list[Slot]):
-    response = [
-        {
-            "id": slots.id,
-            "name": slots.name,
-            "start_time": {
-                "year": slots.start_time.year,
-                "month": slots.start_time.month,
-                "day": slots.start_time.day,
-                "hour": slots.start_time.hour,
-                "minute": slots.start_time.minute,
-            },
-            "end_time": {
-                "year": slots.end_time.year,
-                "month": slots.end_time.month,
-                "day": slots.end_time.day,
-                "hour": slots.end_time.hour,
-                "minute": slots.end_time.minute,
-            },
-            "assignees": [
-                {"id": user.id, "name": user.name} for user in slots.assignees
-            ],
-            "creater": creater_response(slots.creater),
-            "task": task_response(slots.task),
-        }
-        for slots in slots
-    ]
+    response = [slot_response(slot) for slot in slots]
     return response
 
 
@@ -251,13 +153,26 @@ def tasks_response(tasks: list[Task]):
     return response_tasks
 
 
+def groupusers_response(groupuser: list[GroupUser]):
+    response = [
+        {
+            "id": gu.group.id,
+            "name": gu.group.name,
+            "point": gu.point,
+            "role": gu.role,
+        }
+        for gu in groupuser
+    ]
+    return response
+
+
 def user_response(user: User):
     response_user = {
         "id": user.id,
         "name": user.name,
-        "block": user.block,
+        "group": groupusers_response(user.group),
         "room_number": user.room_number,
-        "exp_task": tasks_response(user.exp_task),
+        "exp_task": tasks_response(user.exp_tasks),
         "slots": [{"id": slot.id, "name": slot.name} for slot in user.slots],
         "create_slot": [
             {"id": slot.id, "name": slot.name} for slot in user.create_slot
@@ -268,7 +183,7 @@ def user_response(user: User):
         "point": user.point,
         "bid": [
             {"id": bidder.bid_id, "name": bidder.bid.name}
-            for bidder in user.bid
+            for bidder in user.bids
         ],
         "is_active": user.is_active,
     }
@@ -279,7 +194,6 @@ def creater_response(user: User):
     response_user = {
         "id": user.id,
         "name": user.name,
-        "block": user.block,
         "room_number": user.room_number,
     }
     return response_user
@@ -290,7 +204,6 @@ def users_response(users: list[User]):
         {
             "id": user.id,
             "name": user.name,
-            "block": user.block,
             "room_number": user.room_number,
             "point": user.point,
             "is_active": user.is_active,
@@ -304,18 +217,13 @@ def template_response(template: Template):
     response_template = {
         "id": template.id,
         "name": template.name,
-        "slots": slots_response(template.slots),
+        "tasks": [{"id":task.task_id,"name":task.task.name} for task in template.tasktemplates]
     }
     return response_template
 
 
 def templates_response(templates: list[Template]):
     response_templates = [
-        {
-            "id": template.id,
-            "name": template.name,
-            "slots": slots_response(template.slots),
-        }
-        for template in templates
+        template_response(template) for template in templates
     ]
     return response_templates

@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from app.models.models import User,Method,Authority
+from app.models.models import User
 from app.database import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy.future import select
@@ -83,20 +83,3 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         return current_user
     raise HTTPException(status_code=400, detail="Inactive user")
 
-
-async def check_authority(user:User,method:Method,url:str):
-    tasks=[slot.task for slot in user.slots]
-    authority=[]
-    for task in tasks:
-        authority+=task.authority
-    url=[(authority.method,authority.url) for authority in authority]
-    if (method,url) in url:
-        return True
-    raise HTTPException(status_code=401,detail=f'Authority required to access {url} ')
-
-async def authority_post(name:str,method:Method,url:str,db:Session):
-    authority=Authority(name=name,method=method,url=url)
-    db.add(authority)
-    db.commit()
-    db.refresh()
-    return authority

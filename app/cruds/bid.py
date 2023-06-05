@@ -1,14 +1,13 @@
 import datetime
-from fastapi import FastAPI, HTTPException, status
+from fastapi import HTTPException, status
 from app.models.models import User
 from app.schemas.bid import BidRequest
-from app.models.models import Bid, Bidder, Slot
+from app.models.models import Bid, Bidder
 from sqlalchemy.orm import Session
 from app.cruds.response import (
-    bids_response,
     bid_response,
     bidder_response,
-    bids_response_for_user,
+    bids_for_user_response,
 )
 from app.cruds.slot import slot_response
 import app.cruds.message as message
@@ -55,32 +54,6 @@ def post(bid: BidRequest, db: Session, user: User):
     return bid_response(new_bid)
 
 
-def post_personal(bid: BidRequest, db: Session, user: User):
-    new_bid = Bid(
-        name=bid.name,
-        open_time=datetime.datetime(
-            bid.open_time.year,
-            bid.open_time.month,
-            bid.open_time.day,
-            bid.open_time.hour,
-            bid.open_time.minute,
-        ),
-        close_time=datetime.datetime(
-            bid.close_time.year,
-            bid.close_time.month,
-            bid.close_time.day,
-            bid.close_time.hour,
-            bid.close_time.minute,
-        ),
-        slot_id=bid.slot_id,
-    )
-    db.add(new_bid)
-    user.point -= new_bid.slot.task.buyout_point
-    db.commit()
-    db.refresh(new_bid)
-    return bid_response(new_bid)
-
-
 def all(db: Session):
     items = db.scalars(select(Bid)).all()
     respone_bids = [
@@ -99,15 +72,14 @@ def user_bidable(user: User, db: Session):
     opening_bids = (
         db.execute(
             select(Bid).filter(
-                Bid.open_time<datetime.datetime.now(),
+                Bid.open_time < datetime.datetime.now(),
                 Bid.close_time > datetime.datetime.now(),
             )
         )
         .scalars()
         .all()
     )
-    all_bid=db.scalars(select(Bid)).all()
-    return bids_response_for_user(opening_bids, user, db)
+    return bids_for_user_response(opening_bids, user, db)
 
 
 def get(name: str, db: Session):
@@ -127,7 +99,7 @@ def lack(user: User, db: Session):
         exp_assignees = [
             exp_assignee
             for exp_assignee in assignees
-            if task in exp_assignee.exp_task
+            if task in exp_assignee.exp_tasks
         ]
         if task.min_woker_num > len(assignees):
             lack_bids.append(bid)
@@ -136,8 +108,8 @@ def lack(user: User, db: Session):
             continue
 
     return {
-        "lack_bids": bids_response_for_user(lack_bids,user,db),
-        "lack_exp_bids": bids_response_for_user(lack_exp_bids,user,db),
+        "lack_bids": bids_for_user_response(lack_bids, user, db),
+        "lack_exp_bids": bids_for_user_response(lack_exp_bids, user, db),
     }
 
 
@@ -149,9 +121,9 @@ def tender(bid_id: str, tender_point: int, user, db: Session):
         .filter(Bidder.user_id == user.id, Bidder.bid_id == bid_id)
         .limit(1)
     ).first()
-    if task in user.exp_task:
-        if exist_bidder:  
-            exist_bidder.point=tender_point
+    if task in user.exp_tasks:
+        if exist_bidder:
+            exist_bidder.point = tender_point
             db.commit()
             return bidder_response(exist_bidder)
         bidder = Bidder(point=tender_point)
@@ -160,7 +132,7 @@ def tender(bid_id: str, tender_point: int, user, db: Session):
         db.commit()
         return bidder_response(bidder)
     if exist_bidder:
-        return bidder_response(exist_bidder)        
+        return bidder_response(exist_bidder)
     bidder = Bidder(point=task.buyout_point)
     bidder.user = user
     bid.bidder.append(bidder)
@@ -172,14 +144,14 @@ def tenderlack(bid_id: str, user: User, db: Session):
     bid = db.get(Bid, bid_id)
     task = bid.slot.task
     slot = bid.slot
-    bidder = bid.bidder
-    if task in user.exp_task:
+    bidder = bid.bidders
+    if task in user.exp_tasks:
         if len(slot.assignees) >= task.min_woker_num:
             raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         bidder = Bidder(point=task.buyout_point - 1)
         bidder.user = user
-        bid.bidder.append(bidder)
+        bid.bidders.append(bidder)
         slot.assignees.append(user)
         db.commit()
         return bidder_response(bidder)
@@ -191,7 +163,7 @@ def tenderlack(bid_id: str, user: User, db: Session):
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
         bidder = Bidder(point=task.buyout_point - 1)
         bidder.user = user
-        bid.bidder.append(bidder)
+        bid.bidders.append(bidder)
         slot.assignees.append(user)
         db.commit()
         return bidder_response(bidder)
@@ -217,7 +189,7 @@ def close(bid_id: str, db: Session):
     exp_bidders = []
     inexp_bidders = []
     for bidder in bidders:
-        if task in bidder.user.exp_task:
+        if task in bidder.user.exp_tasks:
             exp_bidders.append(bidder)
         else:
             inexp_bidders.append(bidder)
@@ -308,7 +280,6 @@ def assignee_convert(
     slot.assignees.append(request_user)
     db.commit()
     return bidder_response(bidder)
-
 
 
 def close_all_bid(db: Session):

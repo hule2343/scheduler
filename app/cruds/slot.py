@@ -1,18 +1,16 @@
 import datetime
-from fastapi import FastAPI, HTTPException, status
+from fastapi import HTTPException, status
 from app.models.models import User
 from app.schemas.slot import SlotRequest, SlotUpdate
-from app.models.models import Slot, Bidder, Task, Bid
+from app.models.models import Slot, Bidder, Task
 from sqlalchemy.orm import Session
 from app.cruds.response import (
     slots_response,
     slot_response,
     user_response,
-    bidder_response,
 )
 from sqlalchemy.future import select
-from app.cruds.bidder import bidder_get
-from sqlalchemy import delete, update
+from sqlalchemy import update
 
 
 def all(db: Session):
@@ -147,7 +145,7 @@ def reassign(slot_id: str, user_id: str, db: Session):
     return slot
 
 
-def complete(slot_id: str,done:bool, user: User, db: Session):
+def complete(slot_id: str, done: bool, user: User, db: Session):
     slot = db.get(Slot, slot_id)
     if slot.start_time > datetime.datetime.now():
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
@@ -162,11 +160,10 @@ def complete(slot_id: str,done:bool, user: User, db: Session):
     ).first()
     slot.assignees.remove(user)
     if done:
-        user.exp_task.append(slot.task)
+        user.exp_tasks.append(slot.task)
         user.point += bidder.point
     db.commit()
     return user_response(user)
-
 
 
 def bulk_delete(slots_id: list[str], db: Session):
@@ -177,8 +174,6 @@ def bulk_delete(slots_id: list[str], db: Session):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"id:{slot_id} is not found",
             )
-        if slot.template:
-            continue
         db.delete(slot)
     db.commit()
     return
@@ -188,7 +183,7 @@ def delete_prune_slots(db: Session):
     prune_slots = []
     slots = db.scalars(select(Slot)).all()
     for slot in slots:
-        if slot.template == [] and slot.bid == None:
+        if slot.bid == None:
             prune_slots.append({"id": slot.id, "name": slot.name})
             db.delete(slot)
     db.commit()
@@ -202,7 +197,6 @@ def delete_expired_slots(db: Session):
         if (
             slot.end_time < datetime.datetime.now()
             and slot.assignees == []
-            and slot.template == []
         ):
             expired_slots.append({"id": slot.id, "name": slot.name})
             db.delete(slot)
