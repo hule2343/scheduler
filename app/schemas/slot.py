@@ -19,6 +19,7 @@ class SlotBase(BaseModel):
 class SlotCancelRequest(BaseModel):
     premire_point: int
 
+
 class SlotRequest(BaseModel):
     name: str = Field(max_length=20)
     start_time: DateTime
@@ -35,7 +36,7 @@ class SlotDeleteRequest(BaseModel):
 
 class Slot(BaseModel):
     id: UUID
-    name: str=Field(max_length=20)
+    name: str = Field(max_length=20)
     start_time: datetime
     end_time: datetime
     creater_id: UUID
@@ -47,7 +48,7 @@ class Slot(BaseModel):
 
 
 class SlotUpdate(BaseModel):
-    name: str|None=Field(default=None,max_length=20)
+    name: str | None = Field(default=None, max_length=20)
     start_time: DateTime
     end_time: DateTime
     task_id: UUID

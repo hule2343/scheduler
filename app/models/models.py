@@ -88,9 +88,9 @@ class Task(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(20))
     detail: Mapped[str] = mapped_column(String(400))
-    max_woker_num: Mapped[int] = mapped_column(default=1)  # 最大人数
-    min_woker_num: Mapped[int] = mapped_column(default=1)  # 最少人数
-    exp_woker_num: Mapped[int] = mapped_column(default=0)  # 必要な経験者の人数
+    max_worker_num: Mapped[int] = mapped_column(default=1)  # 最大人数
+    min_worker_num: Mapped[int] = mapped_column(default=1)  # 最少人数
+    exp_worker_num: Mapped[int] = mapped_column(default=0)  # 必要な経験者の人数
     start_point: Mapped[int] = mapped_column(default=0)
     buyout_point: Mapped[int] = mapped_column(default=0)
     slots: Mapped[list["Slot"] | None] = relationship(
@@ -108,12 +108,13 @@ class Task(Base):
     tag: Mapped[Optional[list["TaskTag"]]] = relationship(
         secondary=tag_table, back_populates="tasks", lazy="joined"
     )
-    group_id:Mapped[uuid.UUID]=mapped_column(
-        ForeignKey("group.id",ondelete="SET NULL")
+    tasktemplates: Mapped[Optional[list["TaskTemplate"]]] = relationship(
+        back_populates="task"
     )
-    group:Mapped["Group"]=relationship(
-        back_populates="tasks"
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("group.id", ondelete="CASCADE")
     )
+    group: Mapped["Group"] = relationship(back_populates="tasks")
 
 
 class TaskTag(Base):
@@ -126,18 +127,19 @@ class TaskTag(Base):
 
 
 class TaskTemplate(Base):
-    __tablebane__ = "tasktemplate"
+    __tablename__ = "tasktemplate"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     template_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("template.id", ondelete="CASCADE")
     )
     template: Mapped["Template"] = relationship(back_populates="tasktemplates")
     task_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("task.id", ondelete="CASCADE")
+        ForeignKey("task.id", ondelete="SET NULL")
     )
     task: Mapped["Task"] = relationship(back_populates="tasktemplates")
     date_from_start: Mapped[int] = mapped_column(default=0)
-    time: Mapped[time]
+    start_time: Mapped[time]
+    end_time: Mapped[time]
 
 
 class Template(Base):
@@ -152,10 +154,11 @@ class Template(Base):
 class Group(Base):
     __tablename__ = "group"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
-    users: Mapped[list["GroupUser"]] = relationship(
+    name: Mapped[str] = mapped_column(String(20))
+    users: Mapped[Optional[list["GroupUser"]]] = relationship(
         back_populates="group",
     )
-    tasks: Mapped[list["Task"]] = relationship(
+    tasks: Mapped[Optional[list["Task"]]] = relationship(
         back_populates="group",
     )
 
@@ -186,7 +189,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(20))
     password: Mapped[str] = mapped_column(String(400))
     room_number: Mapped[str] = mapped_column(String(10))
-    group: Mapped[list["GroupUser"]] = relationship(
+    groups: Mapped[Optional[list["GroupUser"]]] = relationship(
         back_populates="user", cascade="all"
     )
     exp_tasks: Mapped[Optional[list["Task"]]] = relationship(

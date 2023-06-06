@@ -13,7 +13,6 @@ from app.schemas.template import TemplateCreate, TemplateBulkGenRequest
 from app.schemas.users import User
 from app.models.models import Template, Slot
 from sqlalchemy.future import select
-from sqlalchemy import delete
 
 router = APIRouter()
 
@@ -55,14 +54,14 @@ async def generate_slots_from_template(
 
 @router.delete("/{template_id}")
 async def template_delete(template_id: str, db: Session = Depends(get_db)):
-    template = db.get(Template,template_id)
+    template = db.get(Template, template_id)
     db.delete(template)
     db.commit()
     return {"id": template.id, "name": template.name}
 
 
 @router.delete("/{template_id}/slots/{slot_id}")
-async def template_delete(
+async def template_delete_slot(
     template_id: str, slot_id: str, db: Session = Depends(get_db)
 ):
     template = db.get(Template, template_id)

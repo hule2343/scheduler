@@ -1,5 +1,4 @@
-from fastapi import FastAPI, status, HTTPException
-from app.models.models import Authority
+from fastapi import  status, HTTPException
 from app.models.models import Task, TaskTag
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.schemas.users import User
@@ -43,12 +42,14 @@ def patch(request: TaskUpdate, task_id: str, db: Session):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No note with this id: {task_id} found",
         )
-    start_point=task.start_point if not request.start_point else request.start_point
-    buyout_point=task.buyout_point if not request.buyout_point else request.buyout_point
+    start_point = (
+        task.start_point if not request.start_point else request.start_point
+    )
+    buyout_point = (
+        task.buyout_point if not request.buyout_point else request.buyout_point
+    )
     if buyout_point > start_point:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     db.execute(
         update(Task)
         .where(Task.id == task_id)
@@ -57,13 +58,13 @@ def patch(request: TaskUpdate, task_id: str, db: Session):
             detail=request.detail if request.detail else task.detail,
             max_woker_num=request.max_woker_num
             if request.max_woker_num
-            else task.max_woker_num,
+            else task.max_worker_num,
             min_woker_num=request.min_woker_num
             if request.min_woker_num
-            else task.min_woker_num,
+            else task.min_worker_num,
             exp_woker_num=request.exp_woker_num
             if request.exp_woker_num
-            else task.exp_woker_num,
+            else task.exp_worker_num,
             start_point=request.start_point
             if request.start_point
             else task.start_point,

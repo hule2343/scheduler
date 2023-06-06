@@ -1,14 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.schemas.bid import BidRequest, TenderRequest, BidConvertRequest
 from app.models.models import User
-from app.models.models import Bid, Bidder
+from app.models.models import Bid
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.cruds.auth import get_current_active_user
 import app.cruds.bid as crud
-import app.cruds.slot as crudslot
-from app.cruds import auth
-from sqlalchemy.future import select
 import datetime
 
 router = APIRouter()

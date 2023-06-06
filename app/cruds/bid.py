@@ -101,9 +101,9 @@ def lack(user: User, db: Session):
             for exp_assignee in assignees
             if task in exp_assignee.exp_tasks
         ]
-        if task.min_woker_num > len(assignees):
+        if task.min_worker_num > len(assignees):
             lack_bids.append(bid)
-        if task.exp_woker_num > len(exp_assignees):
+        if task.exp_worker_num > len(exp_assignees):
             lack_exp_bids.append(bid)
             continue
 
@@ -146,7 +146,7 @@ def tenderlack(bid_id: str, user: User, db: Session):
     slot = bid.slot
     bidder = bid.bidders
     if task in user.exp_tasks:
-        if len(slot.assignees) >= task.min_woker_num:
+        if len(slot.assignees) >= task.min_worker_num:
             raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         bidder = Bidder(point=task.buyout_point - 1)
@@ -159,7 +159,7 @@ def tenderlack(bid_id: str, user: User, db: Session):
         inexp_assignees = [
             user for user in slot.assignees if task not in user.exp_task
         ]
-        if len(inexp_assignees) >= task.min_woker_num - task.exp_woker_num:
+        if len(inexp_assignees) >= task.min_worker_num - task.exp_worker_num:
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
         bidder = Bidder(point=task.buyout_point - 1)
         bidder.user = user
@@ -195,10 +195,10 @@ def close(bid_id: str, db: Session):
             inexp_bidders.append(bidder)
     exp_bidders_len = len(exp_bidders)
     not_exp_bidders_len = len(inexp_bidders)
-    blank_len = task.min_woker_num - task.exp_woker_num
+    blank_len = task.min_worker_num - task.exp_worker_num
 
     if blank_len > not_exp_bidders_len + max(
-        (exp_bidders_len - task.exp_woker_num, 0)
+        (exp_bidders_len - task.exp_worker_num, 0)
     ):
         message.alert_shortage(slot)
         for exp_bidder in exp_bidders:
@@ -208,23 +208,28 @@ def close(bid_id: str, db: Session):
         db.commit()
         return slot_response(slot)
 
-    if exp_bidders_len < task.exp_woker_num:
+    if exp_bidders_len < task.exp_worker_num:
         message.alert_exp_shortage(slot)
         for exp_bidder in exp_bidders:
             slot.assignees.append(exp_bidder.user)
         for index in range(
-            min((task.max_woker_num - task.exp_woker_num, not_exp_bidders_len))
+            min(
+                (
+                    task.max_worker_num - task.exp_worker_num,
+                    not_exp_bidders_len,
+                )
+            )
         ):
             slot.assignees.append(inexp_bidders[index].user)
         db.commit()
         return slot_response(slot)
 
     else:
-        for index in range(task.exp_woker_num):
+        for index in range(task.exp_worker_num):
             slot.assignees.append(exp_bidders[index].user)
 
         if not_exp_bidders_len == 0:
-            for index in range(task.exp_woker_num, task.min_woker_num):
+            for index in range(task.exp_worker_num, task.min_worker_num):
                 slot.assignees.append(exp_bidders[index].user)
             db.commit()
             return slot_response(slot)
@@ -232,8 +237,8 @@ def close(bid_id: str, db: Session):
             for index in range(not_exp_bidders_len):
                 slot.assignees.append(inexp_bidders[index].user)
             for index in range(
-                task.exp_woker_num,
-                task.exp_woker_num + blank_len - not_exp_bidders_len,
+                task.exp_worker_num,
+                task.exp_worker_num + blank_len - not_exp_bidders_len,
             ):
                 slot.assignees.append(exp_bidders[index].user)
             db.commit()
@@ -242,7 +247,7 @@ def close(bid_id: str, db: Session):
             for index in range(
                 min(
                     (
-                        task.max_woker_num - task.exp_woker_num,
+                        task.max_worker_num - task.exp_worker_num,
                         not_exp_bidders_len,
                     )
                 )

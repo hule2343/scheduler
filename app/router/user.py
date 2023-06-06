@@ -1,13 +1,11 @@
 import app.cruds.user as crud
-from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.models.models import User
-from app.schemas.users import UserBase, UserDisplay, AddUserTask,UserUpdate
+from app.schemas.users import UserDisplay, AddUserTask, UserUpdate
 from app.router.auth import Token
 from app.cruds.auth import oauth2_scheme, get_current_active_user
-from typing import Union
 
 router = APIRouter()
 
@@ -21,6 +19,7 @@ async def user_get_by_name(
         return user
     users = crud.all(db)
     return users
+
 
 @router.get("/{user_id}", response_model=UserDisplay)
 async def user_one(
@@ -51,7 +50,7 @@ async def user_createtask(
 
 
 @router.get("/{user_id}/slots")
-async def user_createtask(
+async def user_slots(
     user_id: str,
     end: bool | None = None,
     db: Session = Depends(get_db),
@@ -59,13 +58,17 @@ async def user_createtask(
     if end:
         slots = crud.endslots(user_id, db)
         return slots
-    tasks = crud.slots(user_id, db)
-    return tasks
+    slots = crud.slots(user_id, db)
+    return slots
 
-@router.patch('/{user_id}')
-async def user_patch(user_id:str,request:UserUpdate, db:Session=Depends(get_db)):
-    user=crud.patch(user_id,request,db)
+
+@router.patch("/{user_id}")
+async def user_patch(
+    user_id: str, request: UserUpdate, db: Session = Depends(get_db)
+):
+    user = crud.patch(user_id, request, db)
     return user
+
 
 @router.delete("/", status_code=200)
 async def user_delete(name: str, db: Session = Depends(get_db)):

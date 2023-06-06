@@ -122,9 +122,9 @@ def task_response(task: Task):
         "id": task.id,
         "name": task.name,
         "detail": task.detail,
-        "max_worker_num": task.max_woker_num,
-        "min_worker_num": task.min_woker_num,
-        "exp_worker_num": task.exp_woker_num,
+        "max_worker_num": task.max_worker_num,
+        "min_worker_num": task.min_worker_num,
+        "exp_worker_num": task.exp_worker_num,
         "start_point": task.start_point,
         "buyout_point": task.buyout_point,
         "creater_id": task.creater_id,
@@ -139,9 +139,9 @@ def tasks_response(tasks: list[Task]):
             "id": task.id,
             "name": task.name,
             "detail": task.detail,
-            "max_worker_num": task.max_woker_num,
-            "min_worker_num": task.min_woker_num,
-            "exp_worker_num": task.exp_woker_num,
+            "max_worker_num": task.max_worker_num,
+            "min_worker_num": task.min_worker_num,
+            "exp_worker_num": task.exp_worker_num,
             "start_point": task.start_point,
             "buyout_point": task.buyout_point,
             "creater_id": task.creater_id,
@@ -217,7 +217,10 @@ def template_response(template: Template):
     response_template = {
         "id": template.id,
         "name": template.name,
-        "tasks": [{"id":task.task_id,"name":task.task.name} for task in template.tasktemplates]
+        "tasks": [
+            {"id": task.task_id, "name": task.task.name}
+            for task in template.tasktemplates
+        ],
     }
     return response_template
 
