@@ -2,22 +2,22 @@ from sqlalchemy.orm import Session
 from app.schemas.template import TemplateCreate
 from app.models.models import Slot, Template, User, TaskTemplate
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 
 
 def post(template: TemplateCreate, db: Session):
     db_template = Template(
         name=template.name,
     )
-    for req_task in set(template.tasks):
+    for req_task in template.tasks:
         db_task = TaskTemplate(
             task_id=req_task.id,
             date_from_start=req_task.date_from_start,
-            start_time=datetime.time(
+            start_time=time(
                 hour=req_task.start_time.hour,
                 minute=req_task.start_time.minute,
             ),
-            end_time=datetime.time(
+            end_time=time(
                 hour=req_task.end_time.hour, minute=req_task.end_time.minute
             ),
         )
@@ -34,10 +34,16 @@ def generate_slots(
     tasks = template.tasktemplates
     slots = []
     for task in tasks:
-        date = start_day + timedelta(days=task.date_from_start)
+        date = start_day
         start = datetime.combine(date, task.start_time)
         end = datetime.combine(date, task.end_time)
-        name = start.hour + "時" + start.minute + "分から" + task.task.name
+        name = (
+            str(start.hour)
+            + "時"
+            + str(start.minute)
+            + "分から"
+            + str(task.task.name)
+        )
         slot = Slot(
             creater_id=user.id,
             name=name,

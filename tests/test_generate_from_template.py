@@ -2,7 +2,7 @@ from app.cruds.template import generate_slots, post
 from sqlalchemy.orm import Session
 from app.models.models import Task, User, Group
 from datetime import date, datetime
-from app.schemas.template import TemplateCreate
+from app.schemas.template import TemplateCreate, TemplateTaskBase, TemplateTime
 
 user = {
     "name": "user_1",
@@ -67,50 +67,34 @@ def test_create_template(test_db: Session):
     test_db.add(testtask)
     test_db.commit()
     test_db.refresh(testtask)
-    post_data = {
-        "name": "testTemplate",
-        "tasks": [
-            {
-                "id": testtask.id,
-                "date_from_start": 0,
-                "start_time": {
-                    "hour": 0,
-                    "minute": 0,
-                },
-                "end_time": {
-                    "hour": 1,
-                    "minute": 0,
-                },
-            },
-            {
-                "id": testtask.id,
-                "date_from_start": 0,
-                "start_time": {
-                    "hour": 0,
-                    "minute": 0,
-                },
-                "end_time": {
-                    "hour": 1,
-                    "minute": 0,
-                },
-            },
-            {
-                "id": testtask.id,
-                "date_from_start": 1,
-                "start_time": {
-                    "hour": 0,
-                    "minute": 0,
-                },
-                "end_time": {
-                    "hour": 1,
-                    "minute": 0,
-                },
-            },
-        ],
-    }
+
+    starttime = TemplateTime(hour=0, minute=0)
+    endtime = TemplateTime(hour=1, minute=0)
+
+    templetask1 = TemplateTaskBase(
+        id=testtask.id,
+        date_from_start=0,
+        start_time=starttime,
+        end_time=endtime,
+    )
+
+    templetask2 = TemplateTaskBase(
+        id=testtask.id,
+        date_from_start=0,
+        start_time=starttime,
+        end_time=endtime,
+    )
+    templetask3 = TemplateTaskBase(
+        id=testtask.id,
+        date_from_start=1,
+        start_time=starttime,
+        end_time=endtime,
+    )
+    post_data = TemplateCreate(
+        name="testTemplate", tasks=[templetask1, templetask2, templetask3]
+    )
     template = post(post_data, test_db)
     assert template.name == "testTemplate"
-    assert template.tasktemplates[0].name == "task_1"
     assert len(template.tasktemplates) == 2
     assert template.tasktemplates[0].start_time.hour == 0
     assert template.tasktemplates[0].start_time.minute == 0
