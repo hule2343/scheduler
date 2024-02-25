@@ -7,12 +7,6 @@ from uuid import uuid4
 from datetime import datetime, time
 import enum
 
-tag_table = Table(
-    "tasktag_table",
-    Base.metadata,
-    Column("task", ForeignKey("task.id"), primary_key=True),
-    Column("tasktag", ForeignKey("tasktag.id"), primary_key=True),
-)
 
 experience_table = Table(
     "experience_table",
@@ -27,36 +21,6 @@ slots_table = Table(
     Column("user", ForeignKey("user.id")),
     Column("slot", ForeignKey("slot.id")),
 )
-
-
-class Bid(Base):
-    __tablename__ = "bid"
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
-    name: Mapped[str] = mapped_column(String(20))
-    open_time: Mapped[datetime]
-    close_time: Mapped[datetime]
-    slot_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("slot.id", ondelete="SET NULL")
-    )
-    slot: Mapped["Slot"] = relationship(back_populates="bid")
-    is_complete: Mapped[bool] = mapped_column(default=False)
-    bidders: Mapped[Optional[list["Bidder"]]] = relationship(
-        back_populates="bid", cascade="all,delete"
-    )
-
-
-class Bidder(Base):
-    __tablename__ = "bidder"
-    bid_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("bid.id", ondelete="CASCADE"), primary_key=True
-    )
-    bid: Mapped["Bid"] = relationship(back_populates="bidders")
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("user.id", ondelete="CASCADE"), primary_key=True
-    )
-    user: Mapped["User"] = relationship(back_populates="bids")
-    point: Mapped[int] = mapped_column(default=0)
-    is_canceled: Mapped[bool] = mapped_column(default=False)
 
 
 class Slot(Base):
@@ -78,9 +42,7 @@ class Slot(Base):
         ForeignKey("task.id", ondelete="CASCADE")
     )
     task: Mapped["Task"] = relationship(back_populates="slots", uselist=False)
-    bid: Mapped[Optional["Bid"]] = relationship(
-        back_populates="slot", uselist=False, cascade="all,delete"
-    )
+
 
 
 class Task(Base):
@@ -91,8 +53,7 @@ class Task(Base):
     max_worker_num: Mapped[int] = mapped_column(default=1)  # 最大人数
     min_worker_num: Mapped[int] = mapped_column(default=1)  # 最少人数
     exp_worker_num: Mapped[int] = mapped_column(default=0)  # 必要な経験者の人数
-    start_point: Mapped[int] = mapped_column(default=0)
-    buyout_point: Mapped[int] = mapped_column(default=0)
+    point: Mapped[int] = mapped_column(default=0)
     slots: Mapped[list["Slot"] | None] = relationship(
         back_populates="task", cascade="all,delete"
     )
@@ -105,9 +66,6 @@ class Task(Base):
     creater: Mapped[Optional["User"]] = relationship(
         back_populates="create_task"
     )
-    tag: Mapped[Optional[list["TaskTag"]]] = relationship(
-        secondary=tag_table, back_populates="tasks", lazy="joined"
-    )
     tasktemplates: Mapped[Optional[list["TaskTemplate"]]] = relationship(
         back_populates="task"
     )
@@ -116,14 +74,6 @@ class Task(Base):
     )
     group: Mapped["Group"] = relationship(back_populates="tasks")
 
-
-class TaskTag(Base):
-    __tablename__ = "tasktag"
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
-    name: Mapped[str] = mapped_column(String(10))
-    tasks: Mapped[Optional[list["Task"]]] = relationship(
-        secondary=tag_table, back_populates="tag"
-    )
 
 
 class TaskTemplate(Base):
@@ -203,9 +153,6 @@ class User(Base):
     )
     create_task: Mapped[Optional[list["Task"]]] = relationship(
         back_populates="creater"
-    )
-    bids: Mapped[Optional[list["Bidder"]]] = relationship(
-        back_populates="user", cascade="all"
     )
     is_active: Mapped[bool] = mapped_column(default=True)
 

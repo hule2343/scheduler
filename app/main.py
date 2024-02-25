@@ -1,12 +1,10 @@
 from fastapi import FastAPI
 from app.router import (
     admin,
-    bid,
     slot,
     user,
     auth,
     task,
-    bidder,
     tag,
     template,
     message,
@@ -33,12 +31,9 @@ async def root():
 
 
 app.include_router(admin.router, prefix="/admin")
-app.include_router(bid.router, prefix="/bids")
 app.include_router(slot.router, prefix="/slots")
 app.include_router(task.router, prefix="/tasks")
 app.include_router(template.router, prefix="/templates")
 app.include_router(user.router, prefix="/users")
 app.include_router(auth.router, prefix="")
-app.include_router(bidder.router, prefix="/bidders")
-app.include_router(tag.router, prefix="/tags")
 app.include_router(message.router, prefix="/message")
