@@ -5,7 +5,6 @@ from app.router import (
     user,
     auth,
     task,
-    tag,
     template,
     message,
 )
@@ -29,11 +28,10 @@ app.add_middleware(
 async def root():
     return {"message": "Hello World"}
 
-
 app.include_router(admin.router, prefix="/admin")
-app.include_router(slot.router, prefix="/slots")
-app.include_router(task.router, prefix="/tasks")
-app.include_router(template.router, prefix="/templates")
-app.include_router(user.router, prefix="/users")
+app.include_router(slot.router, prefix="/{group_id}/slots")
+app.include_router(task.router, prefix="/{group_id}/tasks")
+app.include_router(template.router, prefix="/{group_id}/templates")
+app.include_router(user.router, prefix="/{group_id}/users")
 app.include_router(auth.router, prefix="")
-app.include_router(message.router, prefix="/message")
+app.include_router(message.router, prefix="/{group_id}/message")
