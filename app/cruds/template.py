@@ -5,9 +5,10 @@ from app.models.models import Slot, Template, User, TaskTemplate
 from datetime import date, datetime, timedelta, time
 
 
-def post(template: TemplateCreate, db: Session):
+def post(group_id:str,template: TemplateCreate, db: Session):
     db_template = Template(
         name=template.name,
+        group_id=group_id,
     )
     for req_task in template.tasks:
         db_task = TaskTemplate(
@@ -34,7 +35,7 @@ def generate_slots(
     tasks = template.tasktemplates
     slots = []
     for task in tasks:
-        date = start_day
+        date = start_day+timedelta(days=task.date_from_start)
         start = datetime.combine(date, task.start_time)
         end = datetime.combine(date, task.end_time)
         name = (
