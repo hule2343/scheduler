@@ -15,10 +15,13 @@ anyio==4.3.0
 black==24.2.0
 click==8.1.7
     # via black
+    # via uvicorn
 fastapi==0.110.0
     # via app
 greenlet==3.0.3
     # via sqlalchemy
+h11==0.14.0
+    # via uvicorn
 idna==3.6
     # via anyio
 mypy==1.8.0
@@ -48,3 +51,5 @@ typing-extensions==4.9.0
     # via pydantic
     # via pydantic-core
     # via sqlalchemy
+uvicorn==0.27.1
+    # via app
