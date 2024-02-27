@@ -1,7 +1,7 @@
 import datetime
 from fastapi import HTTPException, status
 from app.models.models import User
-from app.schemas.slot import SlotRequest, SlotUpdate
+from app.schemas.slot import SlotCreate
 from app.models.models import Slot, Bidder, Task
 from sqlalchemy.orm import Session
 from app.cruds.response import (
@@ -36,7 +36,7 @@ def get(name: str, db: Session):
     return respone_slot
 
 
-def post(slot: SlotRequest, db: Session, user: User):
+def post(slot: SlotCreate, db: Session, user: User):
     task = db.get(Task, slot.task_id)
     if not task:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
@@ -62,7 +62,7 @@ def post(slot: SlotRequest, db: Session, user: User):
     db.add(slot)
     db.commit()
     db.refresh(slot)
-    return slot_response(slot)
+    return slot
 
 
 def patch(request: SlotUpdate, slot_id: str, db: Session):
@@ -104,45 +104,6 @@ def patch(request: SlotUpdate, slot_id: str, db: Session):
     return slot_response(slot)
 
 
-def cancel(slot_id: str, user: User, premire_point: int, db: Session):
-    slot = db.get(Slot, slot_id)
-    bid = slot.bid
-    if bid is None:
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)
-    bidder = db.scalars(
-        select(Bidder)
-        .filter(Bidder.bid_id == bid.id, Bidder.user_id == user.id)
-        .limit(1)
-    ).first()
-    if not bidder:
-        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
-    if bidder.is_canceled:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT)
-    bidder.is_canceled = True
-    bidder.point += premire_point
-    user.point -= premire_point
-    db.commit()
-    return slot_response(slot)
-
-
-def reassign(slot_id: str, user_id: str, db: Session):
-    slot = db.get(Slot, slot_id)
-    bid = slot.bid
-    if bid is None:
-        raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED)
-    bidder = db.scalars(
-        select(Bidder)
-        .filter(Bidder.bid_id == bid.id, Bidder.user_id == user_id)
-        .limit(1)
-    ).first()
-    if not bidder:
-        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
-    bidder.is_canceled = False
-    db.commit()
-    user = db.get(User, user_id)
-    slot.assignees.append(user)
-    db.commit()
-    return slot
 
 
 def complete(slot_id: str, done: bool, user: User, db: Session):
