@@ -1,83 +1,87 @@
-import app.cruds.user as crud
-from fastapi import APIRouter, Depends, status
-from fastapi.responses import JSONResponse
-from app.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.future import select
 from sqlalchemy.orm import Session
-from app.models.models import User
-from app.schemas.users import UserBase, UserDisplay, AddUserTask,UserUpdate
-from app.router.auth import Token
-from app.cruds.auth import oauth2_scheme, get_current_active_user
-from typing import Union
+
+from app.cruds.auth import check_privilege, get_current_active_user
+from app.database import get_db
+from app.models.models import Group, GroupUser, User
+from app.schemas.users import GroupUsers, UserAddRequest, UserDisplay
 
 router = APIRouter()
 
 
-@router.get("/", response_model=UserDisplay | list[UserDisplay])
-async def user_get_by_name(
-    name: str | None = None, db: Session = Depends(get_db)
-):
-    if name:
-        user = crud.get(name, db)
-        return user
-    users = crud.all(db)
-    return users
-
-@router.get("/{user_id}", response_model=UserDisplay)
-async def user_one(
-    user_id,
-    db: Session = Depends(get_db),
-    token: Token = Depends(oauth2_scheme),
-):
-    user = db.get(User, user_id)
-    return user
+def group_user_display(user: GroupUser):
+    return {
+        "id": user.user_id,
+        "name": user.user.name,
+        "room_number": user.user.room_number,
+        "point": user.point,
+        "role": user.role,
+        "is_active": user.user.is_active,
+    }
 
 
-@router.get("/{user_id}/createslot")
-async def user_createslot(
-    user_id: str,
-    db: Session = Depends(get_db),
-):
-    slots = crud.createslots(user_id, db)
-    return slots
-
-
-@router.get("/{user_id}/createtask")
-async def user_createtask(
-    user_id: str,
-    db: Session = Depends(get_db),
-):
-    tasks = crud.createtask(user_id, db)
-    return tasks
-
-
-@router.get("/{user_id}/slots")
-async def user_createtask(
-    user_id: str,
-    end: bool | None = None,
-    db: Session = Depends(get_db),
-):
-    if end:
-        slots = crud.endslots(user_id, db)
-        return slots
-    tasks = crud.slots(user_id, db)
-    return tasks
-
-@router.patch('/{user_id}')
-async def user_patch(user_id:str,request:UserUpdate, db:Session=Depends(get_db)):
-    user=crud.patch(user_id,request,db)
-    return user
-
-@router.delete("/", status_code=200)
-async def user_delete(name: str, db: Session = Depends(get_db)):
-    crud.delete(name, db)
-    return {"name": name}
-
-
-@router.patch("/task")
-async def add_user_exp_task(
-    request: AddUserTask,
+@router.get("/", response_model=GroupUsers)
+async def group_user_list(
+    group_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    user = crud.add_user_exp_task(request, user, db)
-    return user
+    check_privilege(group_id, user.id, "normal")
+    users = [group_user_display(user) for user in db.get(Group, group_id).users]
+    return {"users": users}
+
+
+@router.post("/", response_model=UserDisplay)
+async def add_user(
+    group_id: str,
+    request: UserAddRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_active_user),
+):
+    check_privilege(group_id, user.id, "super")
+
+    target_user = db.scalars(
+        select(GroupUser)
+        .filter(GroupUser.group_id == group_id, GroupUser.user_id == request.user_id)
+        .limit(1)
+    ).first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="対象のユーザーが見つかりません",
+        )
+
+    if target_user.role != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="すでに承認済みのユーザーです"
+        )
+
+    target_user.role = "normal"
+    db.commit()
+    db.refresh(target_user)
+    return group_user_display(target_user)
+
+
+@router.post("/join", response_model=UserDisplay)
+async def request_join_group(
+    group_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_active_user),
+):
+    group_user = db.scalars(
+        select(GroupUser)
+        .filter(GroupUser.group_id == group_id, GroupUser.user_id == user.id)
+        .limit(1)
+    ).first()
+    if group_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="すでに所属しています"
+        )
+
+    group = db.get(Group, group_id)
+    group_user = GroupUser(user_id=user.id, group_id=group_id)
+    group.users.append(group_user)
+    db.commit()
+    db.refresh(group_user)
+    return group_user_display(group_user)

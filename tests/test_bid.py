@@ -410,7 +410,6 @@ def test_cruds_bid_close(test_db: Session):
     test_db.add_all(db_bid_list)
     test_db.flush()
     test_db.commit()
-    iter = 10
     bids = test_db.execute(select(Bid)).scalars().all()
     assert len(bids) == 5
     for bid in bids:
