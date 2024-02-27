@@ -1,9 +1,7 @@
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import app.cruds.user as crud
 from datetime import timedelta
-from app.cruds import auth
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.schemas.users import UserBase, UserDisplay
@@ -13,7 +11,7 @@ from app.cruds.auth import (
     get_current_active_user,
 )
 from app.cruds.user import user_response
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from app.models.models import User
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30

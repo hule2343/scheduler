@@ -1,109 +1,144 @@
-import app.cruds.user as crud
-from fastapi import APIRouter, Depends, status, HTTPException
-from fastapi.responses import JSONResponse
-from app.database import get_db
-from sqlalchemy.orm import Session
-from app.models.models import User, Bidder, Bid, Slot
-from app.schemas.users import UserBase, UserDisplay
-from app.schemas.slot import SlotUpdate, SlotRequest, SlotCancelRequest, SlotDeleteRequest
-from app.router.auth import Token
-from app.cruds.auth import oauth2_scheme, get_current_active_user
-import app.cruds.slot as crud
-from typing import Union
+import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.future import select
-from app.cruds.response import slot_response
+from sqlalchemy.orm import Session
+
+import app.cruds.slot as crud
+from app.cruds.auth import check_privilege, get_current_active_user
+from app.database import get_db
+from app.models.models import Slot, Task, User
+from app.schemas.slot import SlotCreate, SlotDisplay, SlotList,SlotDelete
+
 router = APIRouter()
 
 
-@router.get("/")
+def slot_display(slot: Slot):
+    return {
+        "id": slot.id,
+        "name": slot.name,
+        "start_time": slot.start_time,
+        "end_time": slot.end_time,
+        "creater_id": slot.creater_id,
+        "creater_name": slot.creater.name,
+        "assignees": [{"id": user.id, "name": user.name} for user in slot.assignees],
+        "task_id": slot.task_id,
+        "task_name": slot.task.name,
+    }
+
+
+@router.get("/", response_model=SlotList)
 async def slot_list(
-    name: str | None = None,
+    group_id: str,
     end: bool | None = None,
+    user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    if name:
-        slot = crud.get(name, db)
-        return slot
+    check_privilege(group_id, user.id, "normal", db)
     if end:
-        slot = crud.slot_finished(db)
-    slots = crud.all(db)
+        slots = db.scalars(
+            select(Slot)
+            .filter(Slot.end_time < datetime.datetime.now())
+            .join(Slot.task)
+            .filter(Task.group_id == group_id)
+        ).all()
+        return {"slots": [slot_display(slot) for slot in slots]}
+    slots = db.scalars(
+        select(Slot).join(Slot.task).filter(Task.group_id == group_id)
+    ).all()
+    return {"slots": [slot_display(slot) for slot in slots]}
+
+
+@router.post("/", response_model=SlotDisplay)
+async def slot_post(
+    group_id: str,
+    slot: SlotCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_active_user),
+):
+    check_privilege(group_id, user.id, "normal", db)
+    slot = crud.post(slot, db, user)
+    return slot_display(slot)
+
+
+@router.delete("/")
+async def slots_delete(
+    group_id: str,
+    expired: bool | None = None,
+    request: SlotDelete |None = None,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    check_privilege(group_id, user.id, "normal", db)
+    if expired:
+        expired_slots = crud.delete_expired_slots(group_id,db)
+        return expired_slots
+    slots = crud.bulk_delete(group_id,request.slots, db)
     return slots
 
-
-@router.get('/{slot_id}')
-async def slot_get(slot_id:str,db:Session=Depends(get_db)):
-    slot=db.get(Slot,slot_id)
+@router.get("/{slot_id}", response_model=SlotDisplay)
+async def slot_get(
+    group_id: str,
+    slot_id: str,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    check_privilege(group_id, user.id, "normal", db)
+    slot = db.get(Slot, slot_id)
     if not slot:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND
-        )
-    return slot_response(slot)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return slot_display(slot)
 
 
-
-@router.post("/")
-async def slot_post(
-    slot: SlotRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_active_user),
-):
-    response = crud.post(slot, db, user)
-    return response
+@router.patch("/{slot_id}")
+async def slot_patch(group_id:str,slot_id: str, request: SlotCreate,user:User=Depends(get_current_active_user), db: Session = Depends(get_db)):
+    check_privilege(group_id, user.id, "normal", db)
+    slot = crud.patch(request, slot_id, db)
+    return slot_display(slot)
 
 
-
-
-@router.post("/{slot_id}/cancel")
+@router.post("/{slot_id}/cancel", response_model=SlotDisplay)
 async def slot_cancel(
-    slot_id: str,
-    request: SlotCancelRequest,
-    user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db),
-):
-    slot = crud.cancel(slot_id, user, request.premire_point, db)
-    return slot
-
-
-@router.post("/{slot_id}/reassign")
-async def slot_reassign(
+    group_id: str,
     slot_id: str,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    slot = crud.reassign(slot_id, user.id, db)
-    return crud.slot_response(slot)
+    slot = db.get(Slot, slot_id)
+    if not slot:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if slot.end_time < datetime.datetime.now():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="すでに終了した仕事です。"
+        )
+    slot.assignees.remove(user)
+    db.commit()
+    db.refresh(slot)
+    return slot_display(slot)
+
+
+@router.post("/{slot_id}/assign", response_model=SlotDisplay)
+async def slot_assign(
+    group_id: str,
+    slot_id: str,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    check_privilege(group_id, user.id, "normal", db)
+    slot = crud.assign(slot_id, user.id, db)
+    return slot_display(slot)
 
 
 @router.post("/{slot_id}/complete")
 async def slot_complete(
-    slot_id: str,    
-    done:bool=True,
+    group_id: str,
+    slot_id: str,
+    done: bool = True,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    response = crud.complete(slot_id,done,user, db)
-    return response
+    check_privilege(group_id, user.id, "normal", db)
+    slot = crud.complete(group_id, slot_id, done, user, db)
+    return slot_display(slot)
 
-@router.patch('/{slot_id}')
-async def slot_patch(
-    slot_id:str,request:SlotUpdate,db:Session=Depends(get_db)
-):
-    slot=crud.patch(request,slot_id,db)
-    return slot
 
-@router.delete('/')
-async def vain_slots_delete(prune:bool|None=None,expired:bool|None=None,db:Session=Depends(get_db)):
-    if prune:
-        prune_slots=crud.delete_prune_slots(db)
-        return prune_slots
-    elif expired:
-        expired_slots=crud.delete_expired_slots(db)
-        return expired_slots
-    prune_slots=crud.delete_prune_slots(db)
-    expired_slots=crud.delete_expired_slots(db)
-    return prune_slots+expired_slots
-
-@router.delete("/bulk")
-async def slot_bulk_delete(request: SlotDeleteRequest, db: Session=Depends(get_db)):
-    crud.bulk_delete(request.slots_id, db)
-    return {"msg":"Successfully deleted."}

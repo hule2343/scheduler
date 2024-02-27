@@ -15,9 +15,7 @@ def all(db: Session):
         {
             "id": user.id,
             "name": user.name,
-            "block": user.block,
             "room_number": user.room_number,
-            "point": user.point,
             "is_active": user.is_active,
         }
         for user in items

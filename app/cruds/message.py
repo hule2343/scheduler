@@ -1,8 +1,6 @@
 from discordwebhook import Discord
 from app.models.models import Slot
 from sqlalchemy.orm import Session
-from app.cruds.auth import get_db
-from fastapi import Depends
 from sqlalchemy.future import select
 from datetime import datetime, date
 
