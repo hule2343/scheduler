@@ -1,19 +1,8 @@
-from pydantic import BaseModel, Field
 from uuid import UUID
 
-
-class TemplateBase(BaseModel):
-    id: UUID
-
-    class Config:
-        orm_mode = True
+from pydantic import BaseModel, Field
 
 
-class Template(TemplateBase):
-    name: str = Field(max_length=20)
-
-    class Config:
-        orm_mode = True
 
 
 class TemplateDate(BaseModel):
@@ -28,6 +17,31 @@ class TemplateDate(BaseModel):
 class TemplateTime(BaseModel):
     hour: int = Field(ge=0, le=23)
     minute: int = Field(ge=0, le=59)
+
+    class Config:
+        orm_mode = True
+
+
+class TemplateSlot(BaseModel):
+    id: UUID
+    name: str
+    date_from_start: int
+    start_time: TemplateTime
+    end_time: TemplateTime
+
+    class Config:
+        orm_mode = True
+
+
+class TemplateDisplay(BaseModel):
+    id: UUID
+    name: str
+    group_id: UUID
+    slots: list[TemplateSlot]
+
+
+class TemplateList(BaseModel):
+    templates: list[TemplateDisplay]
 
     class Config:
         orm_mode = True
@@ -53,27 +67,17 @@ class TemplateTaskBase(BaseModel):
         orm_mode = True
 
 
-class TemplateCreate(BaseModel):
-    name: str = Field(max_length=20)
+class TemplateCreateBase(BaseModel):
+    name:str = Field(max_length=20)
+
+class TemplateCreate(TemplateCreateBase):
     tasks: set[TemplateTaskBase] = set()
 
     class Config:
         orm_mode = True
 
-
-class TemplateGenRequest(BaseModel):
-    first_day: TemplateDate
-
-    class Config:
-        orm_mode = True
-
-
-class TemplateBulkGenRequest(BaseModel):
-    first_days: list[TemplateDate]
+class SlotByTemplate(BaseModel):
+    start_day: TemplateDate
 
     class Config:
         orm_mode = True
-
-
-class TemplateSlotDeleteRequest(BaseModel):
-    slot_id: str

@@ -84,6 +84,8 @@ class TaskTemplate(Base):
     date_from_start: Mapped[int] = mapped_column(default=0)
     start_time: Mapped[time]
     end_time: Mapped[time]
+    def slot_name(self):
+        return self.start_time.strftime("%m/%d %H時") + self.task.name
 
 
 class Template(Base):
@@ -93,6 +95,10 @@ class Template(Base):
     tasktemplates: Mapped[list["TaskTemplate"] | None] = relationship(
         back_populates="template"
     )
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("group.id", ondelete="CASCADE")
+    )
+    group: Mapped["Group"] = relationship(back_populates="templates")
 
 
 class Group(Base):
@@ -105,11 +111,16 @@ class Group(Base):
     tasks: Mapped[None | list["Task"]] = relationship(
         back_populates="group",
     )
+    templates: Mapped[None | list["Template"]] = relationship(
+        back_populates="group",
+    )
+
 
 class Role(enum.Enum):
     super = "super"
     normal = "normal"
-    pending="pending"
+    pending = "pending"
+
 
 class GroupUser(Base):
     __tablename__ = "groupuser"
@@ -122,7 +133,7 @@ class GroupUser(Base):
     )
     user: Mapped["User"] = relationship(back_populates="groups")
     point: Mapped[int] = mapped_column(default=0)
-    role: Mapped["Role"]= mapped_column(default=Role.pending)
+    role: Mapped["Role"] = mapped_column(default=Role.pending)
 
 
 class User(Base):
@@ -144,5 +155,6 @@ class User(Base):
     create_task: Mapped[None | list["Task"]] = relationship(back_populates="creater")
     is_active: Mapped[bool] = mapped_column(default=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
+
     def has_exp(self, task: Task):
         return task in self.exp_tasks
