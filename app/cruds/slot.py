@@ -10,7 +10,7 @@ from app.cruds.response import (
     slots_response,
     user_response,
 )
-from app.models.models import Slot, Task, User, GroupUser
+from app.models.models import GroupUser, Slot, Task, User
 from app.schemas.slot import SlotCreate
 
 
@@ -64,7 +64,7 @@ def post(slot: SlotCreate, db: Session, user: User):
     return slot
 
 
-def patch(request: SlotUpdate, slot_id: str, db: Session):
+def patch(request: SlotCreate, slot_id: str, db: Session):
     slot = db.get(Slot, slot_id)
     if not slot:
         raise HTTPException(
@@ -100,7 +100,8 @@ def patch(request: SlotUpdate, slot_id: str, db: Session):
     )
     slot.task = task
     db.commit()
-    return slot_response(slot)
+    db.refresh(slot)
+    return slot
 
 
 def assign(slot_id: str, user_id: str, db: Session):
@@ -138,7 +139,7 @@ def complete(group_id, slot_id: str, done: bool, user: User, db: Session):
     ).first()
     if not group_user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-    
+
     slot.assignees.remove(user)
     if done:
         user.exp_tasks.append(slot.task)
@@ -148,7 +149,8 @@ def complete(group_id, slot_id: str, done: bool, user: User, db: Session):
     return slot
 
 
-def bulk_delete(slots_id: list[str], db: Session):
+def bulk_delete(group_id:str,slots_id: list[str], db: Session):
+    delete_slot = []
     for slot_id in slots_id:
         slot = db.get(Slot, slot_id)
         if not slot:
@@ -156,24 +158,21 @@ def bulk_delete(slots_id: list[str], db: Session):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"id:{slot_id} is not found",
             )
+        if slot.task.group_id != group_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to delete this slot",
+            )
+        delete_slot.append({"id": slot.id, "name": slot.name})
         db.delete(slot)
     db.commit()
-    return
+    return delete_slot
 
 
-def delete_prune_slots(db: Session):
-    prune_slots = []
-    slots = db.scalars(select(Slot)).all()
-    for slot in slots:
-        if slot.bid == None:
-            prune_slots.append({"id": slot.id, "name": slot.name})
-            db.delete(slot)
-    db.commit()
-    return prune_slots
-
-
-def delete_expired_slots(db: Session):
-    slots = db.scalars(select(Slot)).all()
+def delete_expired_slots(group_id: str, db: Session):
+    slots = db.scalars(
+        select(Slot).join(Slot.task).filter(Task.group_id == group_id)
+    ).all()
     expired_slots = []
     for slot in slots:
         if slot.end_time < datetime.datetime.now() and slot.assignees == []:

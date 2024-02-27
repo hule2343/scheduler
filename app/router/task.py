@@ -60,7 +60,8 @@ async def task_post(
 
 
 @router.patch("/{task_id}", response_model=TaskDisplay)
-async def task_patch(task_id: str, task: TaskCreate, db: Session = Depends(get_db)):
+async def task_patch(group_id:str,task_id: str, task: TaskCreate,user:User=Depends(auth.get_current_active_user), db: Session = Depends(get_db)):
+    auth.check_privilege(group_id, user.id, "super")
     task = crud.patch(task, task_id, db)
     return task_display(task)
 

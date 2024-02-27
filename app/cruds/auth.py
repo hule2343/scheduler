@@ -92,11 +92,12 @@ def check_privilege(
     group_user =db.scalars(
         select(GroupUser).filter_by(group_id=group_id, user_id=user_id).limit(1)
     ).first()
+    user=db.get(User,user_id)
     if not group_user:
         raise HTTPException(status_code=403, detail="このグループには所属していません")
 
     if role == "super":
-        if group_user.role != "super" and group_user.role != "admin":
+        if group_user.role != "super" and not user.is_admin:
             raise HTTPException(status_code=403, detail="権限がありません")
 
     if role == "normal":

@@ -35,3 +35,7 @@ class SlotList(BaseModel):
     class Config:
         orm_mode = True
 
+class SlotDelete(BaseModel):
+    slots: list[UUID]
+    class Config:
+        orm_mode = True
