@@ -1,21 +1,7 @@
-from typing import Dict
 from uuid import UUID
 from datetime import datetime
 from pydantic import BaseModel, Field
-from .task import Task
-from .bid import Bid
-from .template import Template
 from app.schemas.originaldatetime import DateTime
-
-
-class SlotBase(BaseModel):
-    name: str = Field(max_length=20)
-    start_time: datetime
-    end_time: datetime
-    creater: Dict
-    task: Task
-
-
 
 
 class SlotCreate(BaseModel):

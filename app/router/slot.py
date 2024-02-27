@@ -6,14 +6,9 @@ from sqlalchemy.orm import Session
 
 import app.cruds.slot as crud
 from app.cruds.auth import check_privilege, get_current_active_user
-from app.cruds.response import slot_response
 from app.database import get_db
 from app.models.models import Slot, Task, User
-from app.schemas.slot import (
-    SlotDisplay,
-    SlotList,
-    SlotCreate
-)
+from app.schemas.slot import SlotCreate, SlotDisplay, SlotList
 
 router = APIRouter()
 
@@ -68,7 +63,7 @@ async def slot_get(
     return slot_display(slot)
 
 
-@router.post("/")
+@router.post("/", response_model=SlotDisplay)
 async def slot_post(
     group_id: str,
     slot: SlotCreate,
@@ -80,43 +75,46 @@ async def slot_post(
     return slot_display(slot)
 
 
-@router.post("/{slot_id}/cancel")
+@router.post("/{slot_id}/cancel", response_model=SlotDisplay)
 async def slot_cancel(
     group_id: str,
     slot_id: str,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    slot=db.get(Slot,slot_id)
+    slot = db.get(Slot, slot_id)
     if not slot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if slot.end_time < datetime.datetime.now():
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="すでに終了した仕事です。")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="すでに終了した仕事です。"
+        )
     slot.assignees.remove(user)
     db.commit()
     db.refresh(slot)
-    return slot
+    return slot_display(slot)
 
 
-@router.post("/{slot_id}/assign")
-async def slot_reassign(
+@router.post("/{slot_id}/assign", response_model=SlotDisplay)
+async def slot_assign(
     slot_id: str,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    slot = crud.reassign(slot_id, user.id, db)
-    return crud.slot_response(slot)
+    slot = crud.assign(slot_id, user.id, db)
+    return slot_display(slot)
 
 
 @router.post("/{slot_id}/complete")
 async def slot_complete(
+    group_id: str,
     slot_id: str,
     done: bool = True,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    response = crud.complete(slot_id, done, user, db)
-    return response
+    slot = crud.complete(group_id, slot_id, done, user, db)
+    return slot_display(slot)
 
 
 @router.patch("/{slot_id}")

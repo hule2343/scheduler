@@ -1,16 +1,17 @@
 import datetime
+
 from fastapi import HTTPException, status
-from app.models.models import User
-from app.schemas.slot import SlotCreate
-from app.models.models import Slot, Bidder, Task
+from sqlalchemy import update
+from sqlalchemy.future import select
 from sqlalchemy.orm import Session
+
 from app.cruds.response import (
-    slots_response,
     slot_response,
+    slots_response,
     user_response,
 )
-from sqlalchemy.future import select
-from sqlalchemy import update
+from app.models.models import Slot, Task, User, GroupUser
+from app.schemas.slot import SlotCreate
 
 
 def all(db: Session):
@@ -21,9 +22,7 @@ def all(db: Session):
 
 def slot_finished(db: Session):
     item = (
-        db.execute(
-            select(Slot).filter(Slot.end_time < datetime.datetime.now())
-        )
+        db.execute(select(Slot).filter(Slot.end_time < datetime.datetime.now()))
         .scalars()
         .all()
     )
@@ -104,27 +103,49 @@ def patch(request: SlotUpdate, slot_id: str, db: Session):
     return slot_response(slot)
 
 
+def assign(slot_id: str, user_id: str, db: Session):
+    slot = db.get(Slot, slot_id)
+    user = db.get(User, user_id)
+    if not slot or not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if slot.end_time < datetime.datetime.now():
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    exp_assignees = filter(lambda x: slot.task in x.exp_tasks, slot.assignees)
+    if len(slot.assignees) + 1 > slot.task.max_worker_num:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    if (slot.task not in user.exp_tasks) and slot.task.max_worker_num - len(
+        slot.assignees
+    ) + len(exp_assignees) <= slot.task.exp_worker_num:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    slot.assignees.append(user)
+    db.commit()
+    db.refresh(slot)
+    return slot
 
 
-def complete(slot_id: str, done: bool, user: User, db: Session):
+def complete(group_id, slot_id: str, done: bool, user: User, db: Session):
     slot = db.get(Slot, slot_id)
     if slot.start_time > datetime.datetime.now():
         raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE)
     slots = user.slots
     if slot not in slots:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-    bid = slot.bid
-    bidder = db.scalars(
-        select(Bidder)
-        .filter(Bidder.bid_id == bid.id, Bidder.user_id == user.id)
-        .limit(1)
+    group_user = db.scalars(
+        select(GroupUser).filter(
+            GroupUser.group_id == group_id, GroupUser.user_id == user.id
+        )
     ).first()
+    if not group_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    
     slot.assignees.remove(user)
     if done:
         user.exp_tasks.append(slot.task)
-        user.point += bidder.point
+        group_user.point += slot.task.point
     db.commit()
-    return user_response(user)
+    db.refresh(slot)
+    return slot
 
 
 def bulk_delete(slots_id: list[str], db: Session):
@@ -155,10 +176,7 @@ def delete_expired_slots(db: Session):
     slots = db.scalars(select(Slot)).all()
     expired_slots = []
     for slot in slots:
-        if (
-            slot.end_time < datetime.datetime.now()
-            and slot.assignees == []
-        ):
+        if slot.end_time < datetime.datetime.now() and slot.assignees == []:
             expired_slots.append({"id": slot.id, "name": slot.name})
             db.delete(slot)
     db.commit()
