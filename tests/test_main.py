@@ -128,7 +128,9 @@ def test_place_bid(test_client):
     assert responsess.json().get("exp_task") == [task]
     bid = test_client.get("/bids/?name=testBid").json()
     tender_point = {"tender_point": 7}
-    response = test_client.post("/bids/" + bid.get("id") + "/tender", json=tender_point)
+    response = test_client.post(
+        "/bids/" + bid.get("id") + "/tender", json=tender_point
+    )
     assert response.status_code == 200
     assert response.json().get("user_id") == test_client.user.get("id")
     response = test_client.get("/bidders/?bid_id=" + bid.get("id")).json()

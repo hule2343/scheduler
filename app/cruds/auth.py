@@ -1,16 +1,15 @@
 from datetime import datetime, timedelta
 from typing import Union
-
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from sqlalchemy.future import select
-from sqlalchemy.orm import Session
-
+from app.models.models import User,Method,Authority
 from app.database import get_db
-from app.models.models import GroupUser, Role, User
+from sqlalchemy.orm import Session
+from sqlalchemy.future import select
+
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -19,9 +18,9 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
+
 class TokenData(BaseModel):
     username: Union[str, None] = None
-
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -38,7 +37,8 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def authenticate_user(db: Session, username: str, password: str):
+
+def authenticate_user(db:Session, username: str, password: str):
     user = db.scalars(select(User).filter_by(name=username).limit(1)).first()
     if not user:
         return False
@@ -58,9 +58,7 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     return encoded_jwt
 
 
-async def get_current_user(
-    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
-):
+async def get_current_user(db:Session=Depends(get_db),token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_402_PAYMENT_REQUIRED,
         detail="Could not validate credentials",
@@ -86,23 +84,19 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     raise HTTPException(status_code=400, detail="Inactive user")
 
 
-def check_privilege(
-    group_id: str, user_id: str, role: Role, db: Session = Depends(get_db)
-):
-    group_user =db.scalars(
-        select(GroupUser).filter_by(group_id=group_id, user_id=user_id).limit(1)
-    ).first()
-    user=db.get(User,user_id)
-    if not group_user:
-        raise HTTPException(status_code=403, detail="このグループには所属していません")
+async def check_authority(user:User,method:Method,url:str):
+    tasks=[slot.task for slot in user.slots]
+    authority=[]
+    for task in tasks:
+        authority+=task.authority
+    url=[(authority.method,authority.url) for authority in authority]
+    if (method,url) in url:
+        return True
+    raise HTTPException(status_code=401,detail=f'Authority required to access {url} ')
 
-    if role == "super":
-        if group_user.role != "super" and not user.is_admin:
-            raise HTTPException(status_code=403, detail="権限がありません")
-
-    if role == "normal":
-        if group_user.role != "super" and group_user.role != "normal":
-            raise HTTPException(
-                status_code=403, detail="承認待ちのため、権限がありません"
-            )
-    return
+async def authority_post(name:str,method:Method,url:str,db:Session):
+    authority=Authority(name=name,method=method,url=url)
+    db.add(authority)
+    db.commit()
+    db.refresh()
+    return authority

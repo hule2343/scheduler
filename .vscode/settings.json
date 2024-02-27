@@ -1,12 +1,5 @@
 {
-    // python path
-    "python.defaultInterpreterPath": "${workspaceFolder}/app/.venv/bin/python",
-    "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit"
-        },
-        // RuffのFormatter機能を有効化する
-        "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.formatOnSave": true
-    }
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black"
 }

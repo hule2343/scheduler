@@ -1,3 +1,4 @@
+mysqlclient
 SQLAlchemy
 sqlalchemy_utils
 uvicorn
@@ -10,4 +11,3 @@ passlib
 python-multipart
 pytest-asyncio
 psycopg2
-discordwebhook

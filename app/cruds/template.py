@@ -1,58 +1,85 @@
+from fastapi import HTTPException,status
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
+from sqlalchemy.future import select
 from app.schemas.template import TemplateCreate
-from app.models.models import Slot, Template, User, TaskTemplate
+from app.models.models import Slot, Template, User, Bid
+from app.schemas.template import TemplateGenRequest,TemplateBulkGenRequest
 
-from datetime import date, datetime, timedelta, time
-
-
-def post(group_id:str,template: TemplateCreate, db: Session):
-    db_template = Template(
-        name=template.name,
-        group_id=group_id,
-    )
-    for req_task in template.tasks:
-        db_task = TaskTemplate(
-            task_id=req_task.id,
-            date_from_start=req_task.date_from_start,
-            start_time=time(
-                hour=req_task.start_time.hour,
-                minute=req_task.start_time.minute,
-            ),
-            end_time=time(
-                hour=req_task.end_time.hour, minute=req_task.end_time.minute
-            ),
-        )
-        db_template.tasktemplates.append(db_task)
-    db.add(db_template)
-    db.commit()
-    db.refresh(db_template)
-    return db_template
+import datetime
 
 
-def generate_slots(
-    template: Template, start_day: date, user: User, db: Session
-):
-    tasks = template.tasktemplates
+def post(request: TemplateCreate, db: Session):
     slots = []
-    for task in tasks:
-        date = start_day+timedelta(days=task.date_from_start)
-        start = datetime.combine(date, task.start_time)
-        end = datetime.combine(date, task.end_time)
-        name = (
-            str(start.hour)
-            + "時"
-            + str(start.minute)
-            + "分から"
-            + str(task.task.name)
-        )
-        slot = Slot(
-            creater_id=user.id,
-            name=name,
-            task_id=task.task_id,
-            start_time=start,
-            end_time=end,
-        )
+    for slot_id in request.slots:
+        slot = db.get(Slot, slot_id)
+        if not slot:
+            continue
         slots.append(slot)
-    db.bulk_save_objects(slots)
+    template = Template(name=request.name, slots=slots)
+    db.add(template)
     db.commit()
-    return slots
+    return template
+
+
+def generate_slots_from_template(
+    latest_slot: Slot,
+    slots: list[Slot],
+    request: TemplateGenRequest,
+    user: User,
+    db: Session,
+):
+    time_error = datetime.datetime(
+        request.first_day.year, request.first_day.month, request.first_day.day
+    ) - datetime.datetime(
+        latest_slot.start_time.year,
+        latest_slot.start_time.month,
+        latest_slot.start_time.day,
+    )
+    new_bids = []
+    for slot in slots:
+        generated_slot = Slot(
+            name=slot.name,
+            start_time=slot.start_time + time_error,
+            end_time=slot.end_time + time_error,
+            task_id=slot.task.id,
+            creater_id=user.id,
+        )
+        db.add(generated_slot)
+        generated_bid = Bid(
+            name=f"{generated_slot.start_time.month}月{generated_slot.start_time.day}日{slot.name}",
+            open_time=generated_slot.start_time - datetime.timedelta(days=8),
+            close_time=generated_slot.start_time - datetime.timedelta(days=2),
+            slot=generated_slot,
+        )
+        db.add(generated_bid)
+        new_bids.append({"id": generated_bid.id, "name": generated_bid.name})
+    db.commit()
+    return new_bids
+
+
+def bulk_generate_slots_from_template(
+    template_id: str, request: TemplateBulkGenRequest, user: User, db: Session
+):
+    template = db.get(Template, template_id)
+    slots = template.slots
+    latest_slot = db.scalars(
+        select(Slot)
+        .join(Slot.template)
+        .filter(Template.id == template_id)
+        .order_by(Slot.start_time)
+        .limit(1)
+    ).first()
+    if not latest_slot:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="failed to load latest_slot"
+        )
+    new_bids=[]
+    for day in request.first_days:
+        one_request=TemplateGenRequest(
+            first_day=day,
+        )
+        new_bid=generate_slots_from_template(latest_slot,slots,one_request,user,db)
+        new_bids+=new_bid
+    return new_bids
