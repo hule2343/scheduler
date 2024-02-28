@@ -1,4 +1,4 @@
-import axios from "./axios";
+import axios from "@/axios";
 import { Fetcher } from "swr";
 export type ListProps = {
   url: string;
