@@ -13,6 +13,10 @@ export type Date = {
   day: number;
 };
 
+export type GroupResponse = ResponseBase &{
+  role:"super"|"normal"|"pending"
+}
+
 export type UserResponse = ResponseBase & {
   block: string;
   room_number: string;
@@ -60,23 +64,6 @@ export type TaskResponse = ResponseBase & {
   buyout_point: number;
   creater_id: string;
   creater: string;
-};
-
-export type BidResponse = ResponseBase & {
-  open_time: Datetime;
-  close_time: Datetime;
-  slot: BidSlot;
-  start_point: number;
-  buyout_point: number;
-  is_complete: boolean;
-  user_bidpoint: number | "notyet";
-};
-
-export type BidderResponse = ResponseBase & {
-  user_id: string;
-  user: string;
-  point: number;
-  is_canceled: boolean;
 };
 
 export type SlotResponse = ResponseBase & {

@@ -11,11 +11,15 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from '@/axios';
 import Link from 'next/link';
+import { useLocalStorage } from '@/components/localStrage';
+import { useRouter } from 'next/router';
 
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
 export default function Home() {
+  const [access_token, setToken] = useLocalStorage("access_token", "");
+  const router = useRouter()
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -26,7 +30,8 @@ export default function Home() {
       headers: { "Content-Type": "multipart/form-data" },
     })
       .then((response) => {
-        localStorage.setItem("access_token", response.data.access_token);
+        setToken(response.data.access_token);
+        router.push("/groups");
 
       })
       .catch((error: any) => {
@@ -83,7 +88,7 @@ export default function Home() {
               Sign In
             </Button>
             <Grid container>
-   
+
               <Grid item>
                 <Link href="/sign_up" >
                   {"Don't have an account? Sign Up"}
