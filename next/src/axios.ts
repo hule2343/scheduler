@@ -1,5 +1,5 @@
 import axiosBase from "axios";
-import { useLocalStorage } from "./components/localStrage";
+import { useSession } from "next-auth/react";
 
 const axios = axiosBase.create({
   baseURL: "http://localhost:8888",
@@ -12,10 +12,10 @@ const axios = axiosBase.create({
 });
 
 axios.interceptors.request.use((config) => {
-  const [accessToken, setToken] = useLocalStorage("access_token", "");
+  const { data } = useSession();
 
   if (config.headers) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
+    config.headers.Authorization = `Bearer ${data?.accessToken}`;
   }
 
   return config;
