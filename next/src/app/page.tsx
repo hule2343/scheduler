@@ -8,7 +8,6 @@ import axios from "@/axios";
 import React from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import NextAuthProvider from "@/components/provider/NextAuth";
 const fetcher = <T,>(path: string): Promise<T> => axios.get("http://localhost:8080" + path).then((res: AxiosResponse<T>) => res.data)
 
@@ -20,7 +19,7 @@ export default function Top() {
 const GroupList = () => {
     const { data, error, isLoading, mutate } = useSWR<{ groups: GroupResponse[] }>("/groups", fetcher);
     const router = useRouter()
-    if (error) router.push('api/auth/login')
+    if (error) router.push('api/auth/signin')
     if (isLoading) return <div>Loading...</div>;
     const joined_groups = data?.groups.filter((group) => group.role == 'normal' || group.role == 'super')
     const pending_groups = data?.groups.filter((group) => group.role == 'pending')

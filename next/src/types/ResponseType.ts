@@ -7,11 +7,6 @@ export type ResponseBase = {
   id: string;
   name: string;
 };
-export type Date = {
-  year: number;
-  month: number;
-  day: number;
-};
 
 export type GroupResponse = ResponseBase &{
   role:"super"|"normal"|"pending"
@@ -34,26 +29,6 @@ type CreaterResponse = ResponseBase & {
   room_number: string;
 };
 
-export type Datetime = {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-};
-
-export const datetimeParse = (datetime: Datetime): string => {
-  return `${datetime.year}年${datetime.month}月${datetime.day}日${datetime.hour}時${datetime.minute}分`;
-};
-export const noYeardatetimeParse = (datetime: Datetime): string => {
-  return `${datetime.month}月${datetime.day}日${datetime.hour}時${datetime.minute}分`;
-};
-
-type BidSlot = ResponseBase & {
-  start_time: Datetime;
-  end_time: Datetime;
-  assignees: ResponseBase[];
-};
 
 export type TaskResponse = ResponseBase & {
   detail: string;
@@ -67,11 +42,13 @@ export type TaskResponse = ResponseBase & {
 };
 
 export type SlotResponse = ResponseBase & {
-  start_time: Datetime;
-  end_time: Datetime;
+  start_time: string;
+  end_time: string;
+  creater_id: string;
+  creater_name:string ;
   assignees: ResponseBase[];
-  creater: CreaterResponse;
-  task: TaskResponse;
+  task_id: string;
+  task_name: string;
 };
 
 export type TaskTagsResponse = {
@@ -91,6 +68,6 @@ export type TemplateResponse = {
   name: string;
   slots: SlotResponse[];
 };
-export const getData = (url: string) => {
+export const fetcher = (url: string) => {
   return axios.get(url).then((response) => response.data);
 };

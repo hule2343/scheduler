@@ -12,9 +12,11 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import Box from '@mui/material/Box';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 export const MyDrawer = () => {
     const [open, setOpen] = React.useState(false);
+    const router = useRouter();
 
     const toggleDrawer = (newOpen: boolean) => () => {
         setOpen(newOpen);
@@ -23,16 +25,38 @@ export const MyDrawer = () => {
     const DrawerList = (
         <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
             <List>
-                {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                    <ListItem key={text} disablePadding>
-                        <ListItemButton>
-                            <ListItemIcon>
-                                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                            </ListItemIcon>
-                            <ListItemText primary={text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
+                <ListItem key={1} disablePadding>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <InboxIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={"仕事"} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem key={2} disablePadding>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <InboxIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={"マニュアル"} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem key={3} disablePadding>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <InboxIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={"ユーザー一覧"} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem key={4} disablePadding>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <InboxIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={"テンプレート"} />
+                    </ListItemButton>
+                </ListItem>
             </List>
             <Divider />
             <List>
