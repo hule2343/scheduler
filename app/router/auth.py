@@ -1,18 +1,20 @@
-from pydantic import BaseModel
-import app.cruds.user as crud
 from datetime import timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.database import get_db
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from app.schemas.users import UserBase, UserDisplay
+
+import app.cruds.user as crud
 from app.cruds.auth import (
     authenticate_user,
     create_access_token,
     get_current_active_user,
 )
 from app.cruds.user import user_response
-from fastapi.security import OAuth2PasswordRequestForm
+from app.database import get_db
 from app.models.models import User
+from app.schemas.users import UserBase, UserDisplay
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -56,7 +58,12 @@ async def login_for_access_token(
     access_token = create_access_token(
         data={"sub": user.name}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "id": user.id,
+        "name": user.name,
+        "token_type": "bearer",
+    }
 
 
 @router.get("/me")

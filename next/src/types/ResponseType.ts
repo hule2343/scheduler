@@ -24,10 +24,6 @@ export type UserResponse = ResponseBase & {
   is_active: boolean;
 };
 
-type CreaterResponse = ResponseBase & {
-  block: "A1" | "A2" | "A3" | "A4" | "B12" | "B3" | "B4" | "C12" | "C34";
-  room_number: string;
-};
 
 
 export type TaskResponse = ResponseBase & {

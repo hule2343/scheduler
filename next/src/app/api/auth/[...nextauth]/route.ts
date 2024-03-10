@@ -20,9 +20,10 @@ const authOption: AuthOptions = {
                     const response = await axios.post("/login",
                         credentials,
                         {
-                        headers: {
-                            "Content-Type": "multipart/form-data",
-                        }},);
+                            headers: {
+                                "Content-Type": "multipart/form-data",
+                            }
+                        },);
                     const data = response.data;
                     if (data) return data;
                 } catch (error) {
@@ -43,11 +44,15 @@ const authOption: AuthOptions = {
         async jwt({ token, user, account }) {
             if (user) {
                 token.accessToken = user.access_token;
+                token.id = user.id;
+                token.name = user.name;
             }
             return token;
         },
         async session({ session, token, user }) {
             session.accessToken = token.accessToken;
+            session.id = token.id;
+            session.name = token.name;
             return session;
         }
     }
