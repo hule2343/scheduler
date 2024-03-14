@@ -31,11 +31,16 @@ export type TaskResponse = ResponseBase & {
   max_worker_num: number;
   min_worker_num: number;
   exp_worker_num: number;
-  start_point: number;
-  buyout_point: number;
+  point: number;
   creater_id: string;
-  creater: string;
+  creater_name: string;
+  group_id: string;
 };
+
+export type TasksResponse = {
+  tasks: TaskResponse[];
+};
+
 
 export type SlotResponse = ResponseBase & {
   start_time: string;
@@ -63,7 +68,4 @@ export type TemplateResponse = {
   id: string;
   name: string;
   slots: SlotResponse[];
-};
-export const fetcher = (url: string) => {
-  return axios.get(url).then((response) => response.data);
 };

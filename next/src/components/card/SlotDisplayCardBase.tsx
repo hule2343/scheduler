@@ -6,7 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-const toDatetimeString = (time: string) => {
+export const toDatetimeString = (time: string) => {
     return new Date(time).toLocaleString("ja-JP",
         { month: "2-digit", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
 }

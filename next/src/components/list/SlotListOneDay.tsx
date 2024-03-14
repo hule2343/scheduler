@@ -10,8 +10,8 @@ export default function SlotListOneDay({ day, children }: { day: string, childre
                 maxWidth: 360,
                 bgcolor: 'background.paper',
                 position: 'relative',
-                overflow: 'auto',
-                maxHeight: 400,
+                overflow: 'scroll',
+                maxHeight: 500,
                 '& ::-webkit-scrollbar': {
                     display: "none"
                 },

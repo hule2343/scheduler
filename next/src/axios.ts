@@ -13,12 +13,16 @@ const axios = axiosBase.create({
 
 axios.interceptors.request.use((config) => {
   const { data } = useSession();
-
+  
   if (config.headers) {
     config.headers.Authorization = `Bearer ${data?.accessToken}`;
   }
-
+  
   return config;
 });
 
+
+export const fetcher = (url: string) => {
+  return axios.get(url).then((response) => response.data);
+};
 export default axios;

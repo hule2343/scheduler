@@ -13,13 +13,13 @@ const theme = createTheme({
             ::-webkit-scrollbar-thumb {
                 background-color: #276976;
                 border-radius: 5px;
+                width: 5px;
             }
             `
         },
     },
 });
 
-export const Theme = ({ children }: { children: ReactNode }) => { 
-    return <ThemeProvider theme={theme}><CssBaseline/>{children}</ThemeProvider>
+export const Theme = ({ children }: { children: ReactNode }) => {
+    return <ThemeProvider theme={theme}><CssBaseline />{children}</ThemeProvider>
 }
-    

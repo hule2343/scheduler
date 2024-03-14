@@ -279,7 +279,7 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
                     )}
             </ScrollMenu>
             <h2>募集中のシフト</h2>
-            <ScrollMenu>
+            <ScrollMenu >
                 {days.map((day) => {
                     const slots = data.slots.filter((slot) => new Date(slot.start_time).toLocaleDateString("ja-JP", { month: "2-digit", day: "numeric" }) == day)
                         .sort((a, b) => (new Date(a.start_time)).getTime() - (new Date(b.start_time)).getTime())
