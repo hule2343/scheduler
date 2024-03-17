@@ -3,7 +3,7 @@ import { ResponseBase, SlotResponse, TasksResponse } from "@/types/ResponseType"
 import { Grid, List, ListItem, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import { fetcher } from "@/axios";
 import Link from "next/link";
-export default function SlotList({ params }: { params: { groupId: string } }) {
+export default function SlotList() {
     /*const { data, error, isLoading } = useSWR<TasksResponse>(`/${params.groupId}/tasks`, fetcher)
     if (error) return <div>error</div>
     if (!data) return <div>no data</div>
@@ -80,10 +80,10 @@ export default function SlotList({ params }: { params: { groupId: string } }) {
                             {start_time.getMonth() + 1}月{start_time.getDate()}日 {start_time.toLocaleTimeString("ja-JP", { hour: "numeric", minute: "2-digit", hour12: false })}
                         </TableCell>
                         <TableCell>
-                            <Link href={`${params.groupId}/slots/${slot.id}`}>詳細</Link>
+                            <Link href={`slots/${slot.id}`}>詳細</Link>
                         </TableCell>
                         <TableCell>
-                            <Link href={`${params.groupId}/slots/${slot.id}/edit`}>編集</Link>
+                            <Link href={`slots/${slot.id}/edit`}>編集</Link>
                         </TableCell></TableRow>
                 })}
             </TableBody>

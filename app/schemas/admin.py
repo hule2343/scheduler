@@ -4,5 +4,4 @@ class GroupPostRequest(BaseModel):
     name: str
 
 class AddSuperUserRequest(BaseModel):
-    user_id: str
-    group_id: str
+    users:list[str]

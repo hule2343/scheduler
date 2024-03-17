@@ -13,7 +13,6 @@ export type GroupResponse = ResponseBase &{
 }
 
 export type UserResponse = ResponseBase & {
-  block: string;
   room_number: string;
   exp_task: TaskResponse[];
   slots: ResponseBase[];

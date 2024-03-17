@@ -1,6 +1,5 @@
-from fastapi import FastAPI
 from app.models.models import User, Task, Slot
-from app.schemas.users import UserBase, UserUpdate
+from app.schemas.users import UserCreate
 from app.cruds.auth import get_password_hash, verify_password
 from sqlalchemy.orm import Session
 from sqlalchemy.future import select
@@ -29,22 +28,21 @@ def get(name: str, db: Session):
     return response_user
 
 
-def register(user: UserBase, db: Session):
+def register(user: UserCreate, db: Session):
     user.password = get_password_hash(user.password)
-    item = User(
+    user = User(
         name=user.name,
         password=user.password,
-        block=user.block,
         room_number=user.room_number,
     )
     if user.exp_task:
         for exp_task in user.exp_task:
             task = db.get(Task, exp_task)
-            item.exp_task.append(task)
-    db.add(item)
+            user.exp_task.append(task)
+    db.add(user)
     db.commit()
-    db.refresh(item)
-    response_user = user_response(item)
+    db.refresh(user)
+    response_user = user_response(user)
     return response_user
 
 

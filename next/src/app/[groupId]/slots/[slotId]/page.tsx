@@ -33,7 +33,7 @@ export default function SlotDetail({ params }: { params: { groupId: string, slot
             終了時刻: {end_time.getMonth() + 1}月{end_time.getDate()}日 {end_time.getHours()}:{end_time.getMinutes()}
         </Typography>
         <Typography variant="body1">
-            仕事内容:<Link href={`${params.groupId}/tasks/${data.task_id}`}>{data.task_name}</Link>
+            仕事内容:<Link href={`/${params.groupId}/tasks/${data.task_id}`}>{data.task_name}</Link>
         </Typography>
         <Typography variant="body1">
             参加者:{data.assignees.map((assignee) => assignee.name).join(", ")}
