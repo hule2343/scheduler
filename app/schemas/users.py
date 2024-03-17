@@ -14,6 +14,17 @@ class UserCreate(UserBase):
     password: str
     exp_task: list[UUID]
 
+class AdminUserCreate(UserBase):
+    password: str
+    is_admin: bool
+    
+class AdminUserPatch(UserBase):
+    is_active: bool
+    is_admin: bool
+
+class AdminUserDisplay(UserBase):
+    id: UUID
+    is_admin: bool
 
 class UserDisplay(UserBase):
     id: UUID

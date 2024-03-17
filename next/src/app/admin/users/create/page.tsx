@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import * as React from "react";
 import axios from "@/axios";
 import { AdminUserForm } from "@/components/form/AdminUserForm";
@@ -12,10 +12,11 @@ export default function AdminUserCreate() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     axios
-      .post("/register", {
+      .post("/admin/users", {
         name: data.get("name"),
         password: data.get("password"),
         room_number: data.get("room_number"),
+        is_admin: data.get('is_admin') ? true : false,
       })
       .then((response) => {})
       .catch((err) => {});
@@ -36,7 +37,7 @@ export default function AdminUserCreate() {
           ユーザーを新規作成
         </Typography>
         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
-          <AdminUserForm handleSubmit={handleSubmit} />
+          <AdminUserForm  />
         </Box>
       </Box>
     </Container>

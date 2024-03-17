@@ -1,11 +1,13 @@
-from app.models.models import User, Task, Slot
-from app.schemas.users import UserCreate
-from app.cruds.auth import get_password_hash, verify_password
-from sqlalchemy.orm import Session
-from sqlalchemy.future import select
-from sqlalchemy import delete
-from app.cruds.response import user_response, slots_response, tasks_response
 import datetime
+
+from sqlalchemy import delete
+from sqlalchemy.future import select
+from sqlalchemy.orm import Session
+
+from app.cruds.auth import get_password_hash, verify_password
+from app.cruds.response import slots_response, tasks_response, user_response
+from app.models.models import Slot, Task, User
+from app.schemas.users import AdminUserCreate, UserCreate
 
 
 def all(db: Session):
@@ -26,6 +28,20 @@ def get(name: str, db: Session):
     item = db.scalars(select(User).filter_by(name=name).limit(1)).first()
     response_user = user_response(item)
     return response_user
+
+
+def create_admin(user: AdminUserCreate, db: Session):
+    user.password = get_password_hash(user.password)
+    user = User(
+        name=user.name,
+        password=user.password,
+        room_number=user.room_number,
+        is_admin=user.is_admin,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 def register(user: UserCreate, db: Session):
@@ -75,17 +91,13 @@ def createtask(user_id: str, db: Session):
 
 def endslots(user_id: str, db: Session):
     slots = db.get(User, user_id).slots
-    response_slots = [
-        slot for slot in slots if slot.end_time < datetime.datetime.now()
-    ]
+    response_slots = [slot for slot in slots if slot.end_time < datetime.datetime.now()]
     return slots_response(response_slots)
 
 
 def slots(user_id: str, db: Session):
     slots = db.get(User, user_id).slots
-    response_slots = [
-        slot for slot in slots if slot.end_time > datetime.datetime.now()
-    ]
+    response_slots = [slot for slot in slots if slot.end_time > datetime.datetime.now()]
     return slots_response(response_slots)
 
 

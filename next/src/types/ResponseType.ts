@@ -8,9 +8,19 @@ export type ResponseBase = {
   name: string;
 };
 
-export type GroupResponse = ResponseBase &{
-  role:"super"|"normal"|"pending"
-}
+export type GroupResponse = ResponseBase & {
+  role: "super" | "normal" | "pending";
+};
+
+export type GroupUserResponse = GroupResponse & {
+  room_number: string;
+  point: number;
+  is_active: boolean;
+};
+
+export type GroupUsersResponse = {
+  users: GroupUserResponse[];
+};
 
 export type UserResponse = ResponseBase & {
   room_number: string;
@@ -22,8 +32,6 @@ export type UserResponse = ResponseBase & {
   bid: ResponseBase[];
   is_active: boolean;
 };
-
-
 
 export type TaskResponse = ResponseBase & {
   detail: string;
@@ -40,12 +48,11 @@ export type TasksResponse = {
   tasks: TaskResponse[];
 };
 
-
 export type SlotResponse = ResponseBase & {
   start_time: string;
   end_time: string;
   creater_id: string;
-  creater_name:string ;
+  creater_name: string;
   assignees: ResponseBase[];
   task_id: string;
   task_name: string;

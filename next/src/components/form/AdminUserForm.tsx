@@ -1,17 +1,11 @@
 import * as React from "react";
 import Button from "@mui/material/Button";
-import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
 import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 
-export const AdminUserForm = ({
-  handleSubmit,
-}: {
-  handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-}) => {
+export const AdminUserForm = () => {
   return (
     <>
       <Grid container spacing={2}>
@@ -45,6 +39,18 @@ export const AdminUserForm = ({
             label="Password"
             id="password"
             autoComplete="new-password"
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                id="is_admin"
+                name="is_admin"
+                inputProps={{ "aria-label": "controlled" }}
+              />
+            }
+            label="管理者にする"
           />
         </Grid>
       </Grid>

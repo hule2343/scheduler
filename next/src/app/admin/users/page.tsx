@@ -31,10 +31,10 @@ export default function AdminUserList() {
                     return <TableRow key={user.id}>
                         <TableCell>{user.name}</TableCell>
                         <TableCell>
-                        <Link href={`admin/users/${user.id}/edit`}>編集</Link>
+                        <Link href={`users/${user.id}/edit`}>編集</Link>
                         </TableCell>
                         <TableCell>
-                            <Link href={`admin/users/${user.id}/delete`}>削除</Link>
+                            <Link href={`users/${user.id}/delete`}>削除</Link>
                         </TableCell></TableRow>
                 })}
             </TableBody>
