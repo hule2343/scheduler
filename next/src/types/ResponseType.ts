@@ -24,13 +24,13 @@ export type GroupUsersResponse = {
 
 export type UserResponse = ResponseBase & {
   room_number: string;
-  exp_task: TaskResponse[];
+  groups: ResponseBase[];
+  exp_tasks: ResponseBase[];
   slots: ResponseBase[];
   create_slot: ResponseBase[];
   create_task: ResponseBase[];
-  point: number;
-  bid: ResponseBase[];
   is_active: boolean;
+  is_admin: boolean;
 };
 
 export type TaskResponse = ResponseBase & {
@@ -56,18 +56,6 @@ export type SlotResponse = ResponseBase & {
   assignees: ResponseBase[];
   task_id: string;
   task_name: string;
-};
-
-export type TaskTagsResponse = {
-  id: string;
-  name: string;
-};
-
-export type AuthorityResponse = {
-  id: string;
-  name: string;
-  url: string;
-  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 };
 
 export type TemplateResponse = {

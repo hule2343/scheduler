@@ -39,3 +39,6 @@ class GroupUsers(BaseModel):
 
 class UserAddRequest(BaseModel):
     user_id: str
+
+class UserRoleChange(BaseModel):
+    role: Role
