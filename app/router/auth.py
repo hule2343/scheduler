@@ -14,7 +14,7 @@ from app.cruds.auth import (
 from app.cruds.user import user_response
 from app.database import get_db
 from app.models.models import User
-from app.schemas.users import AdminUserCreate, AdminUserDisplay
+from app.schemas.users import AdminUserCreate, AdminUserDisplay, UserUpdate
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -79,3 +79,17 @@ async def login_for_access_token(
 @router.get("/me")
 async def get_current_user(user: User = Depends(get_current_active_user)):
     return user_response(user)
+
+
+@router.patch("/me")
+async def update_current_user(
+    request: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    current_user.name = request.name
+    current_user.room_number = request.room_number
+    current_user.exp_tasks = request.exp_task
+    db.commit()
+    db.refresh(current_user)
+    return display_user(current_user)

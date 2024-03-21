@@ -58,8 +58,13 @@ export type SlotResponse = ResponseBase & {
   task_name: string;
 };
 
-export type TemplateResponse = {
-  id: string;
-  name: string;
-  slots: SlotResponse[];
+type TemplateTask = ResponseBase & {
+  date_from_start: number;
+  start_time: string;
+  end_time: string;
+};
+
+export type TemplateResponse = ResponseBase & {
+  group_id: string;
+  slots: TemplateTask[];
 };

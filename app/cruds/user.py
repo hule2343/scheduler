@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.cruds.auth import get_password_hash, verify_password
 from app.cruds.response import slots_response, tasks_response, user_response
 from app.models.models import Slot, Task, User
-from app.schemas.users import AdminUserCreate, UserCreate
+from app.schemas.users import AdminUserCreate, UserCreate,UserUpdate
 
 
 def all(db: Session):
@@ -62,7 +62,7 @@ def register(user: UserCreate, db: Session):
     return response_user
 
 
-def delete(name: str, db: Session):
+def remove(name: str, db: Session):
     db.execute(delete(User).where(User.name == name))
     db.commit()
     return name
@@ -70,9 +70,9 @@ def delete(name: str, db: Session):
 
 def add_user_exp_task(request, user: User, db: Session):
     user = db.get(User, user.id)
-    for task_id in request.exp_task:
+    for task_id in request.exp_tasks:
         task = db.get(Task, task_id)
-        user.exp_task.append(task)
+        user.exp_tasks.append(task)
     db.commit()
     return user_response(user)
 
@@ -101,17 +101,3 @@ def slots(user_id: str, db: Session):
     return slots_response(response_slots)
 
 
-def patch(user_id: str, request: UserUpdate, db: Session):
-    user = db.get(User, user_id)
-    if request.name:
-        user.name = request.name
-    if request.block:
-        user.block = request.block
-    if request.room_number:
-        user.room_number = request.room_number
-    if request.old_password:
-        if verify_password(request.old_password, user.password):
-            if request.password:
-                user.password = get_password_hash(request.password)
-    db.commit()
-    return user_response(user)

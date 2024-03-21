@@ -14,14 +14,15 @@ import useSWR from "swr";
 export default function ProfileEdit() {
   const [exp_task, setExpTask] = useState<string[]>([]);
   ///const { data: user } = useSWR("/users/me", fetcher);
-  React.useEffect(() => {}, []);
-
   const user = {
     id: "1",
     name: "test",
     room_number: "test",
     groups: [{ id: "1", name: "test" }],
-    exp_tasks: [{ id: "1", name: "test" }],
+    exp_tasks: [
+      { id: "1", name: "test" },
+      { id: "2", name: "testtesst" },
+    ],
     create_slot: [{ id: "1", name: "test" }],
     create_task: [
       { id: "1", name: "testtesst" },
@@ -38,6 +39,13 @@ export default function ProfileEdit() {
     is_active: false,
     is_admin: true,
   };
+  React.useEffect(() => {
+    if (!user) {
+      return;
+    }
+    setExpTask(user.exp_tasks.map((task) => task.id));
+  }, []);
+
   const tasks = [
     { id: "1", name: "test" },
     { id: "2", name: "test" },
@@ -49,9 +57,10 @@ export default function ProfileEdit() {
   ];
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    console.log(exp_task);
     const data = new FormData(event.currentTarget);
     axios
-      .post("/register", {
+      .patch("/me", {
         name: data.get("name"),
         room_number: data.get("room_number"),
         exp_task: exp_task,

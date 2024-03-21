@@ -14,6 +14,9 @@ class UserCreate(UserBase):
     password: str
     exp_task: list[UUID]
 
+class UserUpdate(UserBase):
+    exp_task: list[UUID]
+
 class AdminUserCreate(UserBase):
     password: str
     is_admin: bool
