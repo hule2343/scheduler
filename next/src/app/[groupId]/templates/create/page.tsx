@@ -19,8 +19,7 @@ import React, { useEffect } from "react";
 import axios from "axios";
 import SelectField from "@/components/form/SelectField";
 import { TemplateAddTaskForm } from "@/components/form/TemplateAddForm";
-
-export default function TemplateEdit({
+export default function TemplateCreate({
   params,
 }: {
   params: { groupId: string; templateId: string };
@@ -78,22 +77,36 @@ export default function TemplateEdit({
   };
   const [name, setName] = React.useState("");
   const [task_id, setTaskId] = React.useState("1");
-  const [selectTemplateTask, setSelectTemplateTask] = React.useState("");
-  const handleTaskRemove = (templateTaskId: string) => {};
 
-  const handleTaskSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleTaskRemove = (slot: TemplateTask) => {
+    setTasks(data.filter((s) => s !== slot));
+  };
+
+  const handleTaskAdd = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form_data = new FormData(event.currentTarget);
+    const task = {
+      id: task_id,
+      name: taskData.tasks.find((task) => task.id === task_id)?.name as string,
+      date_from_start: Number(form_data.get("date_from_start")) - 1,
+      start_time: form_data.get("start_time") as string,
+      end_time: form_data.get("end_time") as string,
+    };
+    setTasks([...data, task]);
+  };
+  const handleSubmit = () => {
     axios
-      .patch(
-        `/${params.groupId}/templates/${params.templateId}/tasks/${templateTaskId}`,
-        {
-          id: task_id,
-          date_from_start: Number(form_data.get("date_from_start")) - 1,
-          start_time: form_data.get("start_time") as string,
-          end_time: form_data.get("end_time") as string,
-        }
-      )
+      .post(`/${params.groupId}/templates`, {
+        name: name,
+        tasks: data.map((task) => {
+          return {
+            id: task.id,
+            date_from_start: task.date_from_start,
+            start_time: task.start_time,
+            end_time: task.end_time,
+          };
+        }),
+      })
       .then((response) => {})
       .catch((err) => {});
   };
@@ -116,21 +129,29 @@ export default function TemplateEdit({
       <Box
         component="form"
         noValidate
-        onSubmit={handleTaskSubmit}
+        onSubmit={handleTaskAdd}
         sx={{ mt: 3 }}
         maxWidth={500}
       >
         <TemplateAddTaskForm
-          buttonLabel="保存"
-          templateTask={selectTemplateTask}
-          tasks={taskData.tasks}
+          templateTask={{
+            id: "None",
+            name: "None",
+            date_from_start: 0,
+            start_time: "08:00",
+            end_time: "08:00",
+          }}
+          buttonLabel="追加"
+          tasks={taskData.tasks.map((task) => {
+            return { id: task.id, name: task.name };
+          })}
           task_id={task_id}
           setTaskId={setTaskId}
         />
+        <Button fullWidth variant="contained" onClick={() => handleSubmit}>
+          作成
+        </Button>
       </Box>
-      <Button fullWidth variant="contained" onClick={() => handleTaskRemove}>
-        削除
-      </Button>
       <Grid container spacing={2}>
         {new Array(
           data.length > 0
@@ -157,6 +178,7 @@ export default function TemplateEdit({
                       <TableCell>名前</TableCell>
                       <TableCell>開始時刻</TableCell>
                       <TableCell>終了時刻</TableCell>
+                      <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -167,6 +189,11 @@ export default function TemplateEdit({
                           <TableCell>{slot.name}</TableCell>
                           <TableCell>{slot.start_time}</TableCell>
                           <TableCell>{slot.end_time}</TableCell>
+                          <TableCell>
+                            <Button onClick={() => handleTaskRemove(slot)}>
+                              削除
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                   </TableBody>

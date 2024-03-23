@@ -58,7 +58,7 @@ export type SlotResponse = ResponseBase & {
   task_name: string;
 };
 
-type TemplateTask = ResponseBase & {
+export type TemplateTask = ResponseBase & {
   date_from_start: number;
   start_time: string;
   end_time: string;

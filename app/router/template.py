@@ -33,6 +33,7 @@ def tasktemplate_display(tasktemplate: TaskTemplate):
     return {
         "id": tasktemplate.id,
         "name": tasktemplate.slot_name(),
+        "task_id": tasktemplate.task_id,
         "date_from_start": tasktemplate.date_from_start,
         "start_time": tasktemplate.start_time,
         "end_time": tasktemplate.end_time,
@@ -49,7 +50,7 @@ async def template_get(group_id: str, db: Session = Depends(get_db)):
 async def template_post(
     group_id: str,
     request: TemplateCreate,
-    user:User=Depends(get_current_active_user),
+    user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     check_privilege(group_id, user.id, "normal")
@@ -66,7 +67,12 @@ async def template_get_one(template_id: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/{template_id}")
-async def template_delete(group_id:str,template_id: str,user:User=Depends(get_current_active_user), db: Session = Depends(get_db)):
+async def template_delete(
+    group_id: str,
+    template_id: str,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
     check_privilege(group_id, user.id, "normal")
     template = db.get(Template, template_id)
     if not template:
@@ -78,7 +84,11 @@ async def template_delete(group_id:str,template_id: str,user:User=Depends(get_cu
 
 @router.patch("/{template_id}")
 async def template_patch(
-   group_id:str, template_id: str, request: TemplateCreateBase,user:User=Depends(get_current_active_user), db: Session = Depends(get_db)
+    group_id: str,
+    template_id: str,
+    request: TemplateCreateBase,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
 ):
     check_privilege(group_id, user.id, "normal")
     template = db.get(Template, template_id)
@@ -111,7 +121,11 @@ async def generate_slots_from_template(
 
 @router.delete("/{template_id}/tasks/{tasktemplate_id}")
 async def tasktemplate_delete(
-   group_id:str, template_id: str, tasktemplate_id: str,user:User=Depends(get_current_active_user), db: Session = Depends(get_db)
+    group_id: str,
+    template_id: str,
+    tasktemplate_id: str,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
 ):
     check_privilege(group_id, user.id, "normal")
     template = db.get(Template, template_id)
@@ -128,7 +142,7 @@ async def tasktemplate_delete(
 
 @router.patch("/{template_id}/tasks/{tasktemplate_id}")
 async def tasktemplate_edit(
-    group_id:str,
+    group_id: str,
     template_id: str,
     tasktemplate_id: str,
     request: TemplateTaskBase,

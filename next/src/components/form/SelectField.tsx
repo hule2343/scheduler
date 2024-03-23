@@ -33,7 +33,7 @@ export default function SelectField(
                     onChange={handleChange}
                 >
                     {props.data.map((data) => (
-                        <MenuItem value={data.id}>{data.name}</MenuItem>
+                        <MenuItem key={data.id} value={data.id}>{data.name}</MenuItem>
                     ))}
                 </Select>
             </FormControl>
