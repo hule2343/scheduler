@@ -1,20 +1,24 @@
 import { Button, Grid, TextField } from "@mui/material";
 import SelectField from "./SelectField";
-import { ResponseBase, TemplateTask } from "@/types/ResponseType";
+import {
+  ResponseBase,
+  TemplateTaskResponse,
+} from "@/types/ResponseType";
 
 export const TemplateAddTaskFields = ({
   templateTask,
   buttonLabel,
   tasks,
-  task_id,
-  setTaskId,
+  setTemplateTask,
 }: {
-  templateTask: TemplateTask;
+  templateTask: TemplateTaskResponse;
   buttonLabel: string;
   tasks: ResponseBase[];
-  task_id: string;
-  setTaskId: React.Dispatch<React.SetStateAction<string>>;
+  setTemplateTask: React.Dispatch<React.SetStateAction<TemplateTaskResponse|undefined>>;
 }) => {
+  const setTaskId = (id: string) => {
+    setTemplateTask({ ...templateTask, task_id: id });
+  };
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} sm={6}>
@@ -25,7 +29,13 @@ export const TemplateAddTaskFields = ({
           name="date_from_start"
           type="number"
           inputProps={{ min: 1, max: 100, step: 1 }}
-          defaultValue={templateTask.date_from_start + 1}
+          value={templateTask.date_from_start + 1}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            setTemplateTask({
+              ...templateTask,
+              date_from_start: parseInt(event.target.value) - 1,
+            });
+          }}
         />
       </Grid>
       <Grid item xs={12}>
@@ -36,7 +46,13 @@ export const TemplateAddTaskFields = ({
           label="開始時刻"
           name="start_time"
           type="time"
-          defaultValue={templateTask.start_time}
+          value={templateTask.start_time}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            setTemplateTask({
+              ...templateTask,
+              start_time: event.target.value,
+            });
+          }}
         />
       </Grid>
       <Grid item xs={12}>
@@ -47,14 +63,20 @@ export const TemplateAddTaskFields = ({
           label="終了時刻"
           name="end_time"
           type="time"
-          defaultValue={templateTask.end_time}
+          value={templateTask.end_time}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            setTemplateTask({
+              ...templateTask,
+              end_time: event.target.value,
+            });
+          }}
         />
       </Grid>
       <Grid item xs={12}>
         <SelectField
           data={tasks}
           title="仕事内容"
-          id={task_id}
+          id={templateTask.task_id}
           setData={setTaskId}
         />
       </Grid>

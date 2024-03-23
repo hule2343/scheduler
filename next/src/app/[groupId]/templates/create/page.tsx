@@ -1,7 +1,11 @@
 "use client";
 import { fetcher } from "@/axios";
 import useSWR from "swr";
-import { TemplateResponse, TemplateTask } from "@/types/ResponseType";
+import {
+  TemplateResponse,
+  TemplateTask,
+  TemplateTaskResponse,
+} from "@/types/ResponseType";
 import {
   Box,
   Button,
@@ -77,6 +81,16 @@ export default function TemplateCreate({
   };
   const [name, setName] = React.useState("");
   const [task_id, setTaskId] = React.useState("1");
+  const [formData, setTemplateTask] = React.useState<
+    TemplateTaskResponse | undefined
+  >({
+    id: "",
+    date_from_start: 0,
+    start_time: "08:00",
+    end_time: "09:00",
+    task_id: "",
+    name: "",
+  });
 
   const handleTaskRemove = (slot: TemplateTask) => {
     setTasks(data.filter((s) => s !== slot));
@@ -133,21 +147,16 @@ export default function TemplateCreate({
         sx={{ mt: 3 }}
         maxWidth={500}
       >
-        <TemplateAddTaskFields
-          templateTask={{
-            id: "None",
-            name: "None",
-            date_from_start: 0,
-            start_time: "08:00",
-            end_time: "08:00",
-          }}
-          buttonLabel="追加"
-          tasks={taskData.tasks.map((task) => {
-            return { id: task.id, name: task.name };
-          })}
-          task_id={task_id}
-          setTaskId={setTaskId}
-        />
+        {formData && (
+          <TemplateAddTaskFields
+            templateTask={formData}
+            buttonLabel="追加"
+            tasks={taskData.tasks.map((task) => {
+              return { id: task.id, name: task.name };
+            })}
+            setTemplateTask={setTemplateTask}
+          />
+        )}{" "}
         <Button fullWidth variant="contained" onClick={() => handleSubmit}>
           作成
         </Button>

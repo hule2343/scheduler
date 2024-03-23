@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.cruds import template as crud
 from app.cruds.auth import check_privilege, get_current_active_user
 from app.database import get_db
-from app.models.models import TaskTemplate, Template, User
+from app.models.models import Task, TaskTemplate, Template, User
 from app.schemas.template import (
     SlotByTemplate,
     TemplateCreate,
@@ -118,8 +118,9 @@ async def generate_slots_from_template(
     response = crud.generate_slots(template, start_day, user, db)
     return response
 
+
 @router.post("/{template_id}/tasks")
-async def tasktemplate_post(
+async def tasktemplate_add(
     group_id: str,
     template_id: str,
     request: TemplateTaskBase,
@@ -130,8 +131,25 @@ async def tasktemplate_post(
     template = db.get(Template, template_id)
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    tasktemplate = crud.post_task(template, request, db)
-    return tasktemplate_display(tasktemplate)
+    task = db.get(Task, request.id)
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    tasktemplate = TaskTemplate(
+        task_id=request.id,
+        date_from_start=request.date_from_start,
+        start_time=datetime.time(
+            hour=request.start_time.hour, minute=request.start_time.minute
+        ),
+        end_time=datetime.time(
+            hour=request.end_time.hour, minute=request.end_time.minute
+        ),
+    )
+    db.add(tasktemplate)
+    template.tasktemplates.append(tasktemplate)
+    db.commit()
+    db.refresh(template)
+    return template_display(template)
+
 
 @router.delete("/{template_id}/tasks/{tasktemplate_id}")
 async def tasktemplate_delete(

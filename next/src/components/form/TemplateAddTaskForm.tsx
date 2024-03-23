@@ -1,20 +1,23 @@
+"use client";
 import { Box } from "@mui/system";
 import { TemplateAddTaskFields } from "./TemplateAddFields";
-import { TemplateTask } from "@/types/ResponseType";
-import { useState } from "react";
+import {  TemplateTaskResponse } from "@/types/ResponseType";
+import { useEffect, useState } from "react";
 
 export const TemplateAddTaskForm = ({
   handleSubmit,
-  defaultTemplateTask,
+  templateTask,
 }: {
-  handleSubmit: (task_id: string, formData: FormData) => void;
-  defaultTemplateTask: TemplateTask;
+  handleSubmit: (data: TemplateTaskResponse) => void;
+  templateTask: TemplateTaskResponse;
 }) => {
-  const [task_id, setTaskId] = useState<string>("");
-  const handleTaskSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    handleSubmit(task_id, new FormData(event.currentTarget));
-  };
+  const [formData, setTemplateTask] = useState<TemplateTaskResponse>();
+  useEffect(() => {
+    setTemplateTask(templateTask);
+  }, [templateTask]);
+  if (!formData) {
+    return null;
+  }
   const taskData = {
     tasks: [
       {
@@ -59,16 +62,15 @@ export const TemplateAddTaskForm = ({
     <Box
       component="form"
       noValidate
-      onSubmit={handleTaskSubmit}
+      onSubmit={() => handleSubmit(formData)}
       sx={{ mt: 3 }}
       maxWidth={500}
     >
       <TemplateAddTaskFields
         buttonLabel="保存"
-        templateTask={defaultTemplateTask}
+        templateTask={formData}
+        setTemplateTask={setTemplateTask}
         tasks={taskData.tasks}
-        task_id={task_id}
-        setTaskId={setTaskId}
       />
     </Box>
   );

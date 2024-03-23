@@ -3,7 +3,6 @@ import { fetcher } from "@/axios";
 import useSWR from "swr";
 import {
   TemplateResponse,
-  TemplateTask,
   TemplateTaskResponse,
 } from "@/types/ResponseType";
 import {
@@ -16,13 +15,10 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect } from "react";
+import React from "react";
 import axios from "axios";
-import SelectField from "@/components/form/SelectField";
-import { TemplateAddTaskFields } from "@/components/form/TemplateAddFields";
 import { TemplateAddTaskForm } from "@/components/form/TemplateAddTaskForm";
 import { TemplateNameForm } from "@/components/form/TemplateNameForm";
 
@@ -41,7 +37,7 @@ export default function TemplateEdit({
   if (isLoading) return <div>loading...</div>;
   */
 
-  const data: TemplateResponse = {
+  const [data, setData] = React.useState<TemplateResponse>({
     id: "1",
     name: "template1",
     group_id: "1",
@@ -71,7 +67,7 @@ export default function TemplateEdit({
         name: "task3",
       },
     ],
-  };
+  });
 
   const taskData = {
     tasks: [
@@ -113,8 +109,7 @@ export default function TemplateEdit({
       },
     ],
   };
-  const [selectTemplateTaskId, setSelectTemplateTask] = React.useState("");
-  const [editMode, setEditMode] = React.useState(false);
+  const [selectId, setId] = React.useState<string>();
 
   const handleTaskRemove = (templateTaskId: string) => {
     axios
@@ -125,27 +120,28 @@ export default function TemplateEdit({
       .catch((err) => {});
   };
 
-  const handleTaskAdd = (task_id: string, formData: FormData) => {
+  const handleTaskAdd = (selectTemplateTask: TemplateTaskResponse) => {
     axios
       .post(`/${params.groupId}/templates/${params.templateId}/tasks`, {
-        date_from_start: Number(formData.get("date_from_start")) - 1,
-        start_time: formData.get("start_time") as string,
-        end_time: formData.get("end_time") as string,
-        id: task_id,
+        date_from_start: Number(selectTemplateTask?.date_from_start) - 1,
+        start_time: selectTemplateTask?.start_time,
+        end_time: selectTemplateTask?.end_time,
+        id: selectTemplateTask?.task_id,
       })
       .then((response) => {})
       .catch((err) => {});
   };
 
-  const handleTaskSubmit = (task_id: string, formData: FormData) => {
+  const handleTaskSubmit = (templateTask: TemplateTaskResponse) => {
+    if (!templateTask) return;
     axios
       .patch(
-        `/${params.groupId}/templates/${params.templateId}/tasks/${selectTemplateTaskId}`,
+        `/${params.groupId}/templates/${params.templateId}/tasks/${templateTask?.id}`,
         {
-          id: task_id,
-          date_from_start: Number(formData.get("date_from_start")) - 1,
-          start_time: formData.get("start_time") as string,
-          end_time: formData.get("end_time") as string,
+          id: templateTask.task_id,
+          date_from_start: Number(templateTask.date_from_start) - 1,
+          start_time: templateTask.start_time,
+          end_time: templateTask.end_time,
         }
       )
       .then((response) => {})
@@ -155,28 +151,24 @@ export default function TemplateEdit({
   return (
     <>
       <Typography variant="h4" component="h1" gutterBottom>
-        テンプレートを新規作成
+        テンプレートを編集
       </Typography>
       <TemplateNameForm
         groupId={params.groupId}
         templateId={params.templateId}
         defaultName={data.name}
       />
-      {editMode ? (
+      {selectId ? (
         <>
           {" "}
           <TemplateAddTaskForm
             handleSubmit={handleTaskSubmit}
-            defaultTemplateTask={
-              data.slots.find(
-                (slot) => slot.id === selectTemplateTaskId
-              ) as TemplateTaskResponse
-            }
+            templateTask={data.slots.find((slot) => selectId === slot.id)!}
           />
           <Button
             fullWidth
             variant="contained"
-            onClick={() => handleTaskRemove(selectTemplateTaskId)}
+            onClick={() => handleTaskRemove(selectId)}
           >
             削除
           </Button>
@@ -184,12 +176,13 @@ export default function TemplateEdit({
       ) : (
         <TemplateAddTaskForm
           handleSubmit={handleTaskAdd}
-          defaultTemplateTask={{
+          templateTask={{
             id: "",
-            name: "",
             date_from_start: 0,
             start_time: "08:00",
-            end_time: "08:00",
+            end_time: "09:00",
+            task_id: "",
+            name: "",
           }}
         />
       )}
@@ -219,21 +212,28 @@ export default function TemplateEdit({
                       <TableCell>名前</TableCell>
                       <TableCell>開始時刻</TableCell>
                       <TableCell>終了時刻</TableCell>
+                      <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {data.slots
                       .filter((slot) => slot.date_from_start === i)
                       .map((slot, index) => (
-                        <TableRow
-                          key={index}
-                          onClick={() => {
-                            setSelectTemplateTask(slot.id);
-                          }}
-                        >
+                        <TableRow key={index} selected={selectId === slot.id}>
                           <TableCell>{slot.name}</TableCell>
                           <TableCell>{slot.start_time}</TableCell>
                           <TableCell>{slot.end_time}</TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => {
+                                setId((prev) => {
+                                  return slot.id;
+                                });
+                              }}
+                            >
+                              編集
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
@@ -241,6 +241,19 @@ export default function TemplateEdit({
               </Paper>
             </Grid>
           ))}
+        {selectId ? (
+          <Grid item xs={12}>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => setId(undefined)}
+            >
+              +新規追加
+            </Button>
+          </Grid>
+        ) : (
+          <></>
+        )}
       </Grid>
     </>
   );
