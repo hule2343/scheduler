@@ -118,6 +118,20 @@ async def generate_slots_from_template(
     response = crud.generate_slots(template, start_day, user, db)
     return response
 
+@router.post("/{template_id}/tasks")
+async def tasktemplate_post(
+    group_id: str,
+    template_id: str,
+    request: TemplateTaskBase,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    check_privilege(group_id, user.id, "normal")
+    template = db.get(Template, template_id)
+    if not template:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    tasktemplate = crud.post_task(template, request, db)
+    return tasktemplate_display(tasktemplate)
 
 @router.delete("/{template_id}/tasks/{tasktemplate_id}")
 async def tasktemplate_delete(

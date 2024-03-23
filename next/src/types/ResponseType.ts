@@ -64,7 +64,11 @@ export type TemplateTask = ResponseBase & {
   end_time: string;
 };
 
+export type TemplateTaskResponse =TemplateTask & {
+  task_id: string;
+};
+
 export type TemplateResponse = ResponseBase & {
   group_id: string;
-  slots: TemplateTask[];
+  slots: TemplateTaskResponse[];
 };

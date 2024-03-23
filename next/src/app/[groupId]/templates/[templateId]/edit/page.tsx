@@ -1,7 +1,11 @@
 "use client";
 import { fetcher } from "@/axios";
 import useSWR from "swr";
-import { TemplateResponse, TemplateTask } from "@/types/ResponseType";
+import {
+  TemplateResponse,
+  TemplateTask,
+  TemplateTaskResponse,
+} from "@/types/ResponseType";
 import {
   Box,
   Button,
@@ -18,7 +22,9 @@ import {
 import React, { useEffect } from "react";
 import axios from "axios";
 import SelectField from "@/components/form/SelectField";
-import { TemplateAddTaskForm } from "@/components/form/TemplateAddForm";
+import { TemplateAddTaskFields } from "@/components/form/TemplateAddFields";
+import { TemplateAddTaskForm } from "@/components/form/TemplateAddTaskForm";
+import { TemplateNameForm } from "@/components/form/TemplateNameForm";
 
 export default function TemplateEdit({
   params,
@@ -29,13 +35,44 @@ export default function TemplateEdit({
     `/${params.groupId}/templates/${params.templateId}`,
     fetcher
   );
-
+  
   if (error) return <div>error</div>;
   if (!data) return <div>no data</div>;
   if (isLoading) return <div>loading...</div>;
-*/
+  */
 
-  const [data, setTasks] = React.useState<TemplateTask[]>([]);
+  const data: TemplateResponse = {
+    id: "1",
+    name: "template1",
+    group_id: "1",
+    slots: [
+      {
+        id: "1",
+        date_from_start: 1,
+        start_time: "10:00",
+        end_time: "12:00",
+        task_id: "1",
+        name: "task1",
+      },
+      {
+        id: "2",
+        date_from_start: 1,
+        start_time: "13:00",
+        end_time: "15:00",
+        task_id: "2",
+        name: "task2",
+      },
+      {
+        id: "3",
+        date_from_start: 2,
+        start_time: "10:00",
+        end_time: "12:00",
+        task_id: "3",
+        name: "task3",
+      },
+    ],
+  };
+
   const taskData = {
     tasks: [
       {
@@ -76,22 +113,39 @@ export default function TemplateEdit({
       },
     ],
   };
-  const [name, setName] = React.useState("");
-  const [task_id, setTaskId] = React.useState("1");
-  const [selectTemplateTask, setSelectTemplateTask] = React.useState("");
-  const handleTaskRemove = (templateTaskId: string) => {};
+  const [selectTemplateTaskId, setSelectTemplateTask] = React.useState("");
+  const [editMode, setEditMode] = React.useState(false);
 
-  const handleTaskSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form_data = new FormData(event.currentTarget);
+  const handleTaskRemove = (templateTaskId: string) => {
+    axios
+      .delete(
+        `/${params.groupId}/templates/${params.templateId}/tasks/${templateTaskId}`
+      )
+      .then((response) => {})
+      .catch((err) => {});
+  };
+
+  const handleTaskAdd = (task_id: string, formData: FormData) => {
+    axios
+      .post(`/${params.groupId}/templates/${params.templateId}/tasks`, {
+        date_from_start: Number(formData.get("date_from_start")) - 1,
+        start_time: formData.get("start_time") as string,
+        end_time: formData.get("end_time") as string,
+        id: task_id,
+      })
+      .then((response) => {})
+      .catch((err) => {});
+  };
+
+  const handleTaskSubmit = (task_id: string, formData: FormData) => {
     axios
       .patch(
-        `/${params.groupId}/templates/${params.templateId}/tasks/${templateTaskId}`,
+        `/${params.groupId}/templates/${params.templateId}/tasks/${selectTemplateTaskId}`,
         {
           id: task_id,
-          date_from_start: Number(form_data.get("date_from_start")) - 1,
-          start_time: form_data.get("start_time") as string,
-          end_time: form_data.get("end_time") as string,
+          date_from_start: Number(formData.get("date_from_start")) - 1,
+          start_time: formData.get("start_time") as string,
+          end_time: formData.get("end_time") as string,
         }
       )
       .then((response) => {})
@@ -103,38 +157,46 @@ export default function TemplateEdit({
       <Typography variant="h4" component="h1" gutterBottom>
         テンプレートを新規作成
       </Typography>
-      <Box component="form" noValidate autoComplete="off">
-        <TextField
-          id="template_name"
-          label="テンプレート名"
-          value={name}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-            setName(event.target.value);
+      <TemplateNameForm
+        groupId={params.groupId}
+        templateId={params.templateId}
+        defaultName={data.name}
+      />
+      {editMode ? (
+        <>
+          {" "}
+          <TemplateAddTaskForm
+            handleSubmit={handleTaskSubmit}
+            defaultTemplateTask={
+              data.slots.find(
+                (slot) => slot.id === selectTemplateTaskId
+              ) as TemplateTaskResponse
+            }
+          />
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => handleTaskRemove(selectTemplateTaskId)}
+          >
+            削除
+          </Button>
+        </>
+      ) : (
+        <TemplateAddTaskForm
+          handleSubmit={handleTaskAdd}
+          defaultTemplateTask={{
+            id: "",
+            name: "",
+            date_from_start: 0,
+            start_time: "08:00",
+            end_time: "08:00",
           }}
         />
-      </Box>
-      <Box
-        component="form"
-        noValidate
-        onSubmit={handleTaskSubmit}
-        sx={{ mt: 3 }}
-        maxWidth={500}
-      >
-        <TemplateAddTaskForm
-          buttonLabel="保存"
-          templateTask={selectTemplateTask}
-          tasks={taskData.tasks}
-          task_id={task_id}
-          setTaskId={setTaskId}
-        />
-      </Box>
-      <Button fullWidth variant="contained" onClick={() => handleTaskRemove}>
-        削除
-      </Button>
+      )}
       <Grid container spacing={2}>
         {new Array(
-          data.length > 0
-            ? data
+          data.slots.length > 0
+            ? data.slots
                 .map((task) => task.date_from_start)
                 .reduce((a, b) => Math.max(a, b)) + 1
             : 0
@@ -160,10 +222,15 @@ export default function TemplateEdit({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data
+                    {data.slots
                       .filter((slot) => slot.date_from_start === i)
                       .map((slot, index) => (
-                        <TableRow key={index}>
+                        <TableRow
+                          key={index}
+                          onClick={() => {
+                            setSelectTemplateTask(slot.id);
+                          }}
+                        >
                           <TableCell>{slot.name}</TableCell>
                           <TableCell>{slot.start_time}</TableCell>
                           <TableCell>{slot.end_time}</TableCell>

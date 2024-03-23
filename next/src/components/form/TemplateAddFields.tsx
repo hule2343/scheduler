@@ -2,7 +2,7 @@ import { Button, Grid, TextField } from "@mui/material";
 import SelectField from "./SelectField";
 import { ResponseBase, TemplateTask } from "@/types/ResponseType";
 
-export const TemplateAddTaskForm = ({
+export const TemplateAddTaskFields = ({
   templateTask,
   buttonLabel,
   tasks,
@@ -25,7 +25,7 @@ export const TemplateAddTaskForm = ({
           name="date_from_start"
           type="number"
           inputProps={{ min: 1, max: 100, step: 1 }}
-          defaultValue={templateTask.date_from_start+1}
+          defaultValue={templateTask.date_from_start + 1}
         />
       </Grid>
       <Grid item xs={12}>

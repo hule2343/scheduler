@@ -18,7 +18,7 @@ import {
 import React, { useEffect } from "react";
 import axios from "axios";
 import SelectField from "@/components/form/SelectField";
-import { TemplateAddTaskForm } from "@/components/form/TemplateAddForm";
+import { TemplateAddTaskFields } from "@/components/form/TemplateAddFields";
 export default function TemplateCreate({
   params,
 }: {
@@ -133,7 +133,7 @@ export default function TemplateCreate({
         sx={{ mt: 3 }}
         maxWidth={500}
       >
-        <TemplateAddTaskForm
+        <TemplateAddTaskFields
           templateTask={{
             id: "None",
             name: "None",
