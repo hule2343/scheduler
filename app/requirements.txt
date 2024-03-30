@@ -5,5 +5,5 @@ fastapi
 python-jose
 passlib
 python-multipart
-psycopg2
+psycopg2-binary
 discordwebhook

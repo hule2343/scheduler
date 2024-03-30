@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from app.cruds.response import (
     slot_response,
     slots_response,
-    user_response,
 )
 from app.models.models import GroupUser, Slot, Task, User
 from app.schemas.slot import SlotCreate

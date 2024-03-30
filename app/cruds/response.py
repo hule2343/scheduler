@@ -1,7 +1,6 @@
 from app.models.models import User
-from app.models.models import Slot, Bidder, Bid, Task, Template, GroupUser
+from app.models.models import Slot, Task, Template, GroupUser
 from sqlalchemy.orm import Session
-from sqlalchemy.future import select
 from datetime import datetime
 
 
@@ -14,87 +13,6 @@ def datetime_response(datetime: datetime):
         "minute": datetime.minute,
     }
 
-
-def bid_response(bid: Bid):
-    response = {
-        "id": bid.id,
-        "name": bid.name,
-        "open_time": datetime_response(bid.open_time),
-        "close_time": datetime_response(bid.close_time),
-        "slot": {
-            "id": bid.slot_id,
-            "name": bid.slot.name,
-            "start_time": datetime_response(bid.slot.start_time),
-            "end_time": datetime_response(bid.slot.end_time),
-            "assignees": [
-                {"id": user.id, "name": user.name}
-                for user in bid.slot.assignees
-            ],
-        },
-        "start_point": bid.slot.task.start_point,
-        "buyout_point": bid.slot.task.buyout_point,
-        "is_complete": bid.is_complete,
-    }
-    return response
-
-
-def bids_response(bids: list[Bid]):
-    respone_bids = [bid_response(bid) for bid in bids]
-    return respone_bids
-
-
-def bids_with_name_response(bids: list[Bid]):
-    response = [
-        {
-            "id": bid.id,
-            "name": bid.name,
-        }
-        for bid in bids
-    ]
-
-    return response
-
-
-def bids_for_user_response(bids: list[Bid], user: User, db: Session):
-    respone_bids = bids_response(bids)
-    for bid in respone_bids:
-        bidder = db.scalars(
-            select(Bidder)
-            .filter(Bidder.bid_id == bid["id"], Bidder.user_id == user.id)
-            .join(Bid.bidders)
-            .order_by(Bidder.point)
-            .limit(1)
-        ).first()
-        if bidder is None:
-            bid["user_bidpoint"] = "notyet"
-        else:
-            bid["user_bidpoint"] = bidder.point
-    return respone_bids
-
-
-def bidder_response(bidder: Bidder):
-    response = {
-        "id": bidder.bid_id,
-        "name": bidder.bid.name,
-        "user_id": bidder.user_id,
-        "user": bidder.user.name,
-        "point": bidder.point,
-    }
-    return response
-
-
-def bidders_response(bidder: list[Bidder]):
-    response = [
-        {
-            "id": bidder.bid_id,
-            "name": bidder.bid.name,
-            "user_id": bidder.user_id,
-            "user": bidder.user.name,
-            "point": bidder.point,
-        }
-        for bidder in bidder
-    ]
-    return response
 
 
 def slot_response(slot: Slot):
