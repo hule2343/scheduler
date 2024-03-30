@@ -39,29 +39,17 @@ def post(slot: SlotCreate, db: Session, user: User):
     task = db.get(Task, slot.task_id)
     if not task:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-    slot = Slot(
+    new_slot = Slot(
         name=slot.name,
-        start_time=datetime.datetime(
-            slot.start_time.year,
-            slot.start_time.month,
-            slot.start_time.day,
-            slot.start_time.hour,
-            slot.start_time.minute,
-        ),
-        end_time=datetime.datetime(
-            slot.end_time.year,
-            slot.end_time.month,
-            slot.end_time.day,
-            slot.end_time.hour,
-            slot.end_time.minute,
-        ),
+        start_time=datetime.datetime.fromisoformat(slot.start_time),
+        end_time=datetime.datetime.fromisoformat(slot.end_time),
         task_id=slot.task_id,
         creater_id=user.id,
     )
-    db.add(slot)
+    db.add(new_slot)
     db.commit()
-    db.refresh(slot)
-    return slot
+    db.refresh(new_slot)
+    return new_slot
 
 
 def patch(request: SlotCreate, slot_id: str, db: Session):
@@ -84,20 +72,8 @@ def patch(request: SlotCreate, slot_id: str, db: Session):
         )
         .execution_options(synchronize_session="evaluate")
     )
-    slot.start_time = datetime.datetime(
-        request.start_time.year,
-        request.start_time.month,
-        request.start_time.day,
-        request.start_time.hour,
-        request.start_time.minute,
-    )
-    slot.end_time = datetime.datetime(
-        request.end_time.year,
-        request.end_time.month,
-        request.end_time.day,
-        request.end_time.hour,
-        request.end_time.minute,
-    )
+    slot.start_time = datetime.datetime.fromisoformat(request.start_time)
+    slot.end_time = datetime.datetime.fromisoformat(request.end_time)
     slot.task = task
     db.commit()
     db.refresh(slot)
@@ -149,7 +125,7 @@ def complete(group_id, slot_id: str, done: bool, user: User, db: Session):
     return slot
 
 
-def bulk_delete(group_id:str,slots_id: list[str], db: Session):
+def bulk_delete(group_id: str, slots_id: list[str], db: Session):
     delete_slot = []
     for slot_id in slots_id:
         slot = db.get(Slot, slot_id)

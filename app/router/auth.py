@@ -1,18 +1,20 @@
-from pydantic import BaseModel
-import app.cruds.user as crud
 from datetime import timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.database import get_db
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from app.schemas.users import UserBase, UserDisplay
+
+import app.cruds.user as crud
 from app.cruds.auth import (
     authenticate_user,
     create_access_token,
     get_current_active_user,
 )
 from app.cruds.user import user_response
-from fastapi.security import OAuth2PasswordRequestForm
+from app.database import get_db
 from app.models.models import User
+from app.schemas.users import AdminUserCreate, AdminUserDisplay, UserUpdate
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -30,14 +32,24 @@ class Token(BaseModel):
     token_type: str
 
 
-@router.post("/register", response_model=UserDisplay)
-async def user_register(user: UserBase, db: Session = Depends(get_db)):
-    generated_user = crud.register(user, db)
+def display_user(user: User):
+    return {
+        "id": user.id,
+        "name": user.name,
+        "room_number": user.room_number,
+        "is_active": user.is_active,
+    }
+
+
+@router.post("/register", response_model=AdminUserDisplay)
+async def user_register(user: AdminUserCreate, db: Session = Depends(get_db)):
+    generated_user = crud.create_admin(user, db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
-    return generated_user
+
+    return display_user(generated_user)
 
 
 @router.post("/login", response_model=Token)
@@ -56,9 +68,28 @@ async def login_for_access_token(
     access_token = create_access_token(
         data={"sub": user.name}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "id": user.id,
+        "name": user.name,
+        "token_type": "bearer",
+    }
 
 
 @router.get("/me")
 async def get_current_user(user: User = Depends(get_current_active_user)):
     return user_response(user)
+
+
+@router.patch("/me")
+async def update_current_user(
+    request: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    current_user.name = request.name
+    current_user.room_number = request.room_number
+    current_user.exp_tasks = request.exp_task
+    db.commit()
+    db.refresh(current_user)
+    return display_user(current_user)

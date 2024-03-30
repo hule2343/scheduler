@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.cruds.auth import check_privilege, get_current_active_user
 from app.database import get_db
 from app.models.models import Group, GroupUser, User
-from app.schemas.users import GroupUsers, UserAddRequest, UserDisplay
+from app.schemas.users import GroupUsers, UserAddRequest, UserDisplay, UserRoleChange
 
 router = APIRouter()
 
@@ -85,3 +85,53 @@ async def request_join_group(
     db.commit()
     db.refresh(group_user)
     return group_user_display(group_user)
+
+
+@router.delete("/{user_id}")
+async def delete_groupuser(
+    group_id: str,
+    user_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_active_user),
+):
+    check_privilege(group_id, user.id, "super")
+
+    target_user = db.scalars(
+        select(GroupUser)
+        .filter(GroupUser.group_id == group_id, GroupUser.user_id == user_id)
+        .limit(1)
+    ).first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="対象のユーザーが見つかりません",
+        )
+    db.delete(target_user)
+    db.commit()
+    return {"status": "success"}
+
+
+@router.patch("/{user_id}/role", response_model=UserDisplay)
+async def change_user_role(
+    group_id: str,
+    user_id: str,
+    request: UserRoleChange,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_active_user),
+):
+    check_privilege(group_id, user.id, "super")
+
+    target_user = db.scalars(
+        select(GroupUser)
+        .filter(GroupUser.group_id == group_id, GroupUser.user_id == user_id)
+        .limit(1)
+    ).first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="対象のユーザーが見つかりません",
+        )
+    target_user.role = request.role
+    db.commit()
+    db.refresh(target_user)
+    return group_user_display(target_user)

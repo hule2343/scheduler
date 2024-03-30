@@ -29,6 +29,7 @@ def post(group_id:str,template: TemplateCreate, db: Session):
     return db_template
 
 
+
 def generate_slots(
     template: Template, start_day: date, user: User, db: Session
 ):

@@ -1,13 +1,11 @@
 from uuid import UUID
-from datetime import datetime
 from pydantic import BaseModel, Field
-from app.schemas.originaldatetime import DateTime
 
 
 class SlotCreate(BaseModel):
     name: str = Field(max_length=20)
-    start_time: DateTime
-    end_time: DateTime
+    start_time: str
+    end_time: str
     task_id: UUID
     class Config:
         orm_mode = True

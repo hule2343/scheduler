@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.cruds import template as crud
 from app.cruds.auth import check_privilege, get_current_active_user
 from app.database import get_db
-from app.models.models import TaskTemplate, Template, User
+from app.models.models import Task, TaskTemplate, Template, User
 from app.schemas.template import (
     SlotByTemplate,
     TemplateCreate,
@@ -33,6 +33,7 @@ def tasktemplate_display(tasktemplate: TaskTemplate):
     return {
         "id": tasktemplate.id,
         "name": tasktemplate.slot_name(),
+        "task_id": tasktemplate.task_id,
         "date_from_start": tasktemplate.date_from_start,
         "start_time": tasktemplate.start_time,
         "end_time": tasktemplate.end_time,
@@ -49,7 +50,7 @@ async def template_get(group_id: str, db: Session = Depends(get_db)):
 async def template_post(
     group_id: str,
     request: TemplateCreate,
-    user:User=Depends(get_current_active_user),
+    user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     check_privilege(group_id, user.id, "normal")
@@ -66,7 +67,12 @@ async def template_get_one(template_id: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/{template_id}")
-async def template_delete(group_id:str,template_id: str,user:User=Depends(get_current_active_user), db: Session = Depends(get_db)):
+async def template_delete(
+    group_id: str,
+    template_id: str,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
     check_privilege(group_id, user.id, "normal")
     template = db.get(Template, template_id)
     if not template:
@@ -78,7 +84,11 @@ async def template_delete(group_id:str,template_id: str,user:User=Depends(get_cu
 
 @router.patch("/{template_id}")
 async def template_patch(
-   group_id:str, template_id: str, request: TemplateCreateBase,user:User=Depends(get_current_active_user), db: Session = Depends(get_db)
+    group_id: str,
+    template_id: str,
+    request: TemplateCreateBase,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
 ):
     check_privilege(group_id, user.id, "normal")
     template = db.get(Template, template_id)
@@ -109,9 +119,45 @@ async def generate_slots_from_template(
     return response
 
 
+@router.post("/{template_id}/tasks")
+async def tasktemplate_add(
+    group_id: str,
+    template_id: str,
+    request: TemplateTaskBase,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    check_privilege(group_id, user.id, "normal")
+    template = db.get(Template, template_id)
+    if not template:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    task = db.get(Task, request.id)
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    tasktemplate = TaskTemplate(
+        task_id=request.id,
+        date_from_start=request.date_from_start,
+        start_time=datetime.time(
+            hour=request.start_time.hour, minute=request.start_time.minute
+        ),
+        end_time=datetime.time(
+            hour=request.end_time.hour, minute=request.end_time.minute
+        ),
+    )
+    db.add(tasktemplate)
+    template.tasktemplates.append(tasktemplate)
+    db.commit()
+    db.refresh(template)
+    return template_display(template)
+
+
 @router.delete("/{template_id}/tasks/{tasktemplate_id}")
 async def tasktemplate_delete(
-   group_id:str, template_id: str, tasktemplate_id: str,user:User=Depends(get_current_active_user), db: Session = Depends(get_db)
+    group_id: str,
+    template_id: str,
+    tasktemplate_id: str,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
 ):
     check_privilege(group_id, user.id, "normal")
     template = db.get(Template, template_id)
@@ -128,7 +174,7 @@ async def tasktemplate_delete(
 
 @router.patch("/{template_id}/tasks/{tasktemplate_id}")
 async def tasktemplate_edit(
-    group_id:str,
+    group_id: str,
     template_id: str,
     tasktemplate_id: str,
     request: TemplateTaskBase,
