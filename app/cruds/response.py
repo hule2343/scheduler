@@ -43,6 +43,8 @@ def slot_display(slot: Slot):
         "task_name": slot.task.name,
     }
 
+def slots_display(slots: Slot):
+    return [slot_display(slot) for slot in slots]
 
 def task_display(task: Task):
     return {
@@ -57,6 +59,9 @@ def task_display(task: Task):
         "creater_name": task.creater.name,
         "group_id": task.group_id,
     }
+
+def tasks_display(tasks: Task):
+    return [task_display(task) for task in tasks]
 
 
 def template_display(template: Template):

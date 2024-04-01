@@ -4,10 +4,10 @@ from sqlalchemy import delete
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
-from app.cruds.auth import get_password_hash, verify_password
-from app.cruds.response import slots_response, tasks_response, user_detail_display
+from app.cruds.auth import get_password_hash
+from app.cruds.response import slots_display, tasks_display, user_detail_display
 from app.models.models import Slot, Task, User
-from app.schemas.users import AdminUserCreate, UserCreate, UserUpdate
+from app.schemas.users import AdminUserCreate, UserCreate
 
 
 def all(db: Session):
@@ -80,22 +80,22 @@ def add_user_exp_task(request, user: User, db: Session):
 def createslots(user_id: str, db: Session):
     user = db.get(User, user_id)
     slots = user.create_slot
-    return slots_response(slots)
+    return slots_display(slots)
 
 
 def createtask(user_id: str, db: Session):
     user = db.get(User, user_id)
     tasks = user.create_task
-    return tasks_response(tasks)
+    return tasks_display(tasks)
 
 
 def endslots(user_id: str, db: Session):
     slots = db.get(User, user_id).slots
     response_slots = [slot for slot in slots if slot.end_time < datetime.datetime.now()]
-    return slots_response(response_slots)
+    return slots_display(response_slots)
 
 
 def slots(user_id: str, db: Session):
     slots = db.get(User, user_id).slots
     response_slots = [slot for slot in slots if slot.end_time > datetime.datetime.now()]
-    return slots_response(response_slots)
+    return slots_display(response_slots)
