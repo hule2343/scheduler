@@ -1,14 +1,6 @@
 import useSWR from "swr";
+import { ResponseBase } from "@/types/ResponseType";
 import {
-  ResponseBase,
-  SlotResponse,
-  TasksResponse,
-} from "@/types/ResponseType";
-import {
-  Button,
-  Grid,
-  List,
-  ListItem,
   Table,
   TableBody,
   TableCell,
@@ -18,24 +10,13 @@ import {
 import axios, { fetcher } from "@/axios";
 import Link from "next/link";
 export default function AdminGroupList() {
-  /*const { data, error, isLoading } = useSWR<TasksResponse>(`/${params.groupId}/tasks`, fetcher)
-    if (error) return <div>error</div>
-    if (!data) return <div>no data</div>
-    if (isLoading) return <div>loading...</div>
-    */
-  const data = {
-    groups: [
-      { id: "1", name: "test" },
-      { id: "2", name: "test2" },
-      { id: "3", name: "test3" },
-    ],
-  };
-  const handleGroupDelete = (groupId: string) => {
-    axios
-      .delete(`groups/${groupId}/delete`)
-      .then((res) => {})
-      .catch((err) => {});
-  };
+  const { data, error, isLoading } = useSWR<{ groups: ResponseBase[] }>(
+    `admin/groups`,
+    fetcher
+  );
+  if (error) return <div>error</div>;
+  if (!data) return <div>no data</div>;
+  if (isLoading) return <div>loading...</div>;
 
   return (
     <>

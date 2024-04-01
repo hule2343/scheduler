@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
+from app.cruds.response import response_base, user_detail_display, user_display
 from app.cruds.user import create_admin
 from app.database import get_db
 from app.models.models import Group, GroupUser, User
@@ -11,13 +13,10 @@ from app.schemas.users import AdminUserCreate, AdminUserPatch
 router = APIRouter()
 
 
-def display_user(user: User):
-    return {
-        "id": user.id,
-        "name": user.name,
-        "room_number": user.room_number,
-        "is_active": user.is_active,
-    }
+@router.get("/users")
+async def admin_user_list(db: Session = Depends(get_db)):
+    users = db.scalars(select(User)).all()
+    return {"users": [user_display(user) for user in users]}
 
 
 @router.post("/users")
@@ -28,7 +27,17 @@ async def admin_user_register(user: AdminUserCreate, db: Session = Depends(get_d
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    return display_user(generated_user)
+    return user_display(generated_user)
+
+
+@router.get("/users/{user_id}")
+async def admin_user_detail(user_id: str, db: Session = Depends(get_db)):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return user_detail_display(user)
 
 
 @router.patch("/users/{user_id}")
@@ -48,7 +57,13 @@ async def admin_user_patch(
     user.is_admin = request.is_admin if request.is_admin is not None else user.is_admin
     await db.commit()
     await db.refresh(user)
-    return display_user(user)
+    return user_display(user)
+
+
+@router.get("/groups")
+async def group_list(db: Session = Depends(get_db)):
+    groups = db.scalars(select(Group)).all()
+    return {"groups": [response_base(group) for group in groups]}
 
 
 @router.post("/groups")
@@ -59,6 +74,14 @@ async def create_group(request: GroupPostRequest, db: Session = Depends(get_db))
     await db.refresh(group)
     return group
 
+@router.get("/groups/{group_id}")
+async def get_group(group_id: str, db: Session = Depends(get_db)):
+    group = db.get(Group, group_id)
+    if not group:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return response_base(group)
 
 @router.patch("/groups/{group_id}")
 async def patch_gorup(

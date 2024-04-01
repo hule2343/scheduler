@@ -9,22 +9,10 @@ from app.cruds.auth import check_privilege, get_current_active_user
 from app.database import get_db
 from app.models.models import Slot, Task, User
 from app.schemas.slot import SlotCreate, SlotDisplay, SlotList,SlotDelete
-
+from app.cruds.response import slot_display
 router = APIRouter()
 
 
-def slot_display(slot: Slot):
-    return {
-        "id": slot.id,
-        "name": slot.name,
-        "start_time": slot.start_time,
-        "end_time": slot.end_time,
-        "creater_id": slot.creater_id,
-        "creater_name": slot.creater.name,
-        "assignees": [{"id": user.id, "name": user.name} for user in slot.assignees],
-        "task_id": slot.task_id,
-        "task_name": slot.task.name,
-    }
 
 
 @router.get("/", response_model=SlotList)

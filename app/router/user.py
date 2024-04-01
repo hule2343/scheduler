@@ -3,22 +3,12 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.cruds.auth import check_privilege, get_current_active_user
+from app.cruds.response import group_user_display
 from app.database import get_db
 from app.models.models import Group, GroupUser, User
 from app.schemas.users import GroupUsers, UserAddRequest, UserDisplay, UserRoleChange
 
 router = APIRouter()
-
-
-def group_user_display(user: GroupUser):
-    return {
-        "id": user.user_id,
-        "name": user.user.name,
-        "room_number": user.user.room_number,
-        "point": user.point,
-        "role": user.role,
-        "is_active": user.user.is_active,
-    }
 
 
 @router.get("/", response_model=GroupUsers)

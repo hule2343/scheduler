@@ -12,26 +12,20 @@ import Checkbox from "@mui/material/Checkbox";
 import Button from "@mui/material/Button";
 import useSWR from "swr";
 import { fetcher } from "@/axios";
+import { UserDetailResponse } from "@/types/ResponseType";
 export default function AdminUserEdit({
   params,
 }: {
   params: { userId: string };
 }) {
-  /*
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR<UserDetailResponse>(
     `/admin/users/${params.userId}`,
     fetcher
   );
   if (error) return <div>error</div>;
   if (!data) return <div>no data</div>;
-    if (isLoading) return <div>loading...</div>;
-*/
-  const data = {
-    name: "test",
-    room_number: "test",
-    is_active: false,
-    is_admin: false,
-  };
+  if (isLoading) return <div>loading...</div>;
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

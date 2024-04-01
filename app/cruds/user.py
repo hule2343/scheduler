@@ -5,9 +5,9 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.cruds.auth import get_password_hash, verify_password
-from app.cruds.response import slots_response, tasks_response, user_response
+from app.cruds.response import slots_response, tasks_response, user_detail_display
 from app.models.models import Slot, Task, User
-from app.schemas.users import AdminUserCreate, UserCreate,UserUpdate
+from app.schemas.users import AdminUserCreate, UserCreate, UserUpdate
 
 
 def all(db: Session):
@@ -26,7 +26,7 @@ def all(db: Session):
 
 def get(name: str, db: Session):
     item = db.scalars(select(User).filter_by(name=name).limit(1)).first()
-    response_user = user_response(item)
+    response_user = user_detail_display(item)
     return response_user
 
 
@@ -58,7 +58,7 @@ def register(user: UserCreate, db: Session):
     db.add(user)
     db.commit()
     db.refresh(user)
-    response_user = user_response(user)
+    response_user = user_detail_display(user)
     return response_user
 
 
@@ -74,7 +74,7 @@ def add_user_exp_task(request, user: User, db: Session):
         task = db.get(Task, task_id)
         user.exp_tasks.append(task)
     db.commit()
-    return user_response(user)
+    return user_detail_display(user)
 
 
 def createslots(user_id: str, db: Session):
@@ -99,5 +99,3 @@ def slots(user_id: str, db: Session):
     slots = db.get(User, user_id).slots
     response_slots = [slot for slot in slots if slot.end_time > datetime.datetime.now()]
     return slots_response(response_slots)
-
-

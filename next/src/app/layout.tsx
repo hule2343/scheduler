@@ -2,7 +2,6 @@ import { Inter } from 'next/font/google';
 import NextAuthProvider from '@/components/provider/NextAuth';
 import { Metadata } from 'next';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
-import { ThemeProvider, createTheme } from '@mui/material';
 import { Theme } from '@/components/provider/Theme';
 const inter = Inter({ subsets: ['latin'] });
 
