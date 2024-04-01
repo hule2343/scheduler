@@ -5,12 +5,20 @@ import Box from "@mui/material/Box";
 import { GroupForm } from "@/components/form/GroupForm";
 import useSWR from "swr";
 import fetcher from "@/axios";
+import { ResponseBase } from "@/types/ResponseType";
 export default function GroupEditForm({
   params,
 }: {
   params: { groupId: string };
 }) {
-  const { data, error,isLoading } = useSWR(`admin/groups/${params.groupId}`, fetcher);
+  const { data, error, isLoading } = useSWR<ResponseBase>(
+    `admin/groups/${params.groupId}`,
+    fetcher
+  );
+  if (error) return <div>error</div>;
+  if (!data) return <div>no data</div>;
+  if (isLoading) return <div>loading...</div>;
+  
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

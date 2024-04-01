@@ -11,7 +11,7 @@ class TemplateDate(BaseModel):
     day: int = Field(ge=1, le=31)
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TemplateTime(BaseModel):
@@ -19,7 +19,7 @@ class TemplateTime(BaseModel):
     minute: int = Field(ge=0, le=59)
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TemplateSlot(BaseModel):
@@ -30,7 +30,7 @@ class TemplateSlot(BaseModel):
     end_time: TemplateTime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TemplateDisplay(BaseModel):
@@ -44,7 +44,7 @@ class TemplateList(BaseModel):
     templates: list[TemplateDisplay]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TemplateTaskBase(BaseModel):
@@ -64,7 +64,7 @@ class TemplateTaskBase(BaseModel):
         )
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TemplateCreateBase(BaseModel):
@@ -74,10 +74,10 @@ class TemplateCreate(TemplateCreateBase):
     tasks: set[TemplateTaskBase] = set()
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class SlotByTemplate(BaseModel):
     start_day: TemplateDate
 
     class Config:
-        orm_mode = True
+        from_attributes = True

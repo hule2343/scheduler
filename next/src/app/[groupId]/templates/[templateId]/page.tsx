@@ -19,7 +19,7 @@ export default function TemplateDetail({
 }: {
   params: { groupId: string; templateId: string };
 }) {
-  /*const { data, error, isLoading } = useSWR<TemplateResponse>(
+  const { data, error, isLoading } = useSWR<TemplateResponse>(
     `/${params.groupId}/templates/${params.templateId}`,
     fetcher
   );
@@ -27,82 +27,6 @@ export default function TemplateDetail({
   if (error) return <div>error</div>;
   if (!data) return <div>no data</div>;
   if (isLoading) return <div>loading...</div>;
-*/
-  const data = {
-    name: "template1",
-    slots: [
-      {
-        id: "1",
-        name: "slot1",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 1,
-      },
-      {
-        id: "1",
-        name: "slot1",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 1,
-      },
-      {
-        id: "1",
-        name: "slot1",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 1,
-      },
-      {
-        id: "1",
-        name: "slot1",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 1,
-      },
-      {
-        id: "1",
-        name: "slot1",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 1,
-      },
-      {
-        id: "1",
-        name: "slot1",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 1,
-      },
-      {
-        id: "1",
-        name: "slot1",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 1,
-      },
-      {
-        id: "1",
-        name: "slot1",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 1,
-      },
-      {
-        id: "2",
-        name: "slot2",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 2,
-      },
-      {
-        id: "3",
-        name: "slot3",
-        start_time: "2022-10-10T10:00",
-        end_time: "2022-10-10T12:00",
-        date_from_start: 3,
-      },
-    ],
-  };
 
   const last_date = data.slots
     .map((slot) => slot.date_from_start)

@@ -1,10 +1,7 @@
 "use client";
 import { fetcher } from "@/axios";
 import useSWR from "swr";
-import {
-  TemplateResponse,
-  TemplateTaskResponse,
-} from "@/types/ResponseType";
+import { TemplateResponse, TemplateTaskResponse } from "@/types/ResponseType";
 import {
   Box,
   Button,
@@ -27,89 +24,15 @@ export default function TemplateEdit({
 }: {
   params: { groupId: string; templateId: string };
 }) {
-  /*const { data, error, isLoading } = useSWR<TemplateResponse>(
+  const { data, error, isLoading } = useSWR<TemplateResponse>(
     `/${params.groupId}/templates/${params.templateId}`,
     fetcher
   );
-  
+  const [selectId, setId] = React.useState<string>();
+
   if (error) return <div>error</div>;
   if (!data) return <div>no data</div>;
   if (isLoading) return <div>loading...</div>;
-  */
-
-  const [data, setData] = React.useState<TemplateResponse>({
-    id: "1",
-    name: "template1",
-    group_id: "1",
-    slots: [
-      {
-        id: "1",
-        date_from_start: 1,
-        start_time: "10:00",
-        end_time: "12:00",
-        task_id: "1",
-        name: "task1",
-      },
-      {
-        id: "2",
-        date_from_start: 1,
-        start_time: "13:00",
-        end_time: "15:00",
-        task_id: "2",
-        name: "task2",
-      },
-      {
-        id: "3",
-        date_from_start: 2,
-        start_time: "10:00",
-        end_time: "12:00",
-        task_id: "3",
-        name: "task3",
-      },
-    ],
-  });
-
-  const taskData = {
-    tasks: [
-      {
-        id: "1",
-        name: "task1",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-      {
-        id: "2",
-        name: "task2",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-      {
-        id: "3",
-        name: "task3",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-    ],
-  };
-  const [selectId, setId] = React.useState<string>();
 
   const handleTaskRemove = (templateTaskId: string) => {
     axios

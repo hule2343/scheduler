@@ -22,11 +22,11 @@ class TaskDisplay(TaskCreate):
     group_id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TaskList(TaskBase):
     tasks: list[TaskDisplay]
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -7,7 +7,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import axios, { fetcher } from "@/axios";
+import { fetcher } from "@/axios";
 import Link from "next/link";
 export default function AdminGroupList() {
   const { data, error, isLoading } = useSWR<{ groups: ResponseBase[] }>(

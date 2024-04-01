@@ -2,7 +2,7 @@
 import { fetcher } from "@/axios";
 import useSWR from "swr";
 import {
-  TemplateResponse,
+  TasksResponse,
   TemplateTask,
   TemplateTaskResponse,
 } from "@/types/ResponseType";
@@ -19,70 +19,24 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect } from "react";
+import React from "react";
 import axios from "axios";
-import SelectField from "@/components/form/SelectField";
 import { TemplateAddTaskFields } from "@/components/form/TemplateAddFields";
 export default function TemplateCreate({
   params,
 }: {
   params: { groupId: string; templateId: string };
 }) {
-  /*const { data, error, isLoading } = useSWR<TemplateResponse>(
-    `/${params.groupId}/templates/${params.templateId}`,
-    fetcher
-  );
-
-  if (error) return <div>error</div>;
-  if (!data) return <div>no data</div>;
-  if (isLoading) return <div>loading...</div>;
-*/
-
+  const {
+    data: taskData,
+    error: taskError,
+    isLoading: taskIsLoading,
+  } = useSWR<TasksResponse>(`/${params.groupId}/tasks/`, fetcher);
   const [data, setTasks] = React.useState<TemplateTask[]>([]);
-  const taskData = {
-    tasks: [
-      {
-        id: "1",
-        name: "task1",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-      {
-        id: "2",
-        name: "task2",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-      {
-        id: "3",
-        name: "task3",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-    ],
-  };
   const [name, setName] = React.useState("");
-  const [task_id, setTaskId] = React.useState("1");
+  const [task_id, setTaskId] = React.useState("");
   const [formData, setTemplateTask] = React.useState<
-    TemplateTaskResponse | undefined
+  TemplateTaskResponse | undefined
   >({
     id: "",
     date_from_start: 0,
@@ -91,7 +45,11 @@ export default function TemplateCreate({
     task_id: "",
     name: "",
   });
-
+  
+  if (taskError) return <div>error</div>;
+  if (taskIsLoading) return <div>loading...</div>;
+  if (!taskData) return <div>no data</div>;
+ 
   const handleTaskRemove = (slot: TemplateTask) => {
     setTasks(data.filter((s) => s !== slot));
   };
