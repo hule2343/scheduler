@@ -20,7 +20,6 @@ export default function AdminAddSuperUser({
 }: {
   params: { groupId: string };
 }) {
-  /*
   const { data, error, isLoading } = useSWR<GroupUsersResponse>(
     `/${params.groupId}/users`,
     fetcher
@@ -28,14 +27,6 @@ export default function AdminAddSuperUser({
   if (error) return <div>error</div>;
   if (!data) return <div>no data</div>;
   if (isLoading) return <div>loading...</div>;
-*/
-  const data = {
-    users: [
-      { id: "1", name: "test", room_number: "1", role: "super" },
-      { id: "2", name: "test2", room_number: "2", role: "normal" },
-      { id: "3", name: "test3", room_number: "3", role: "normal" },
-    ],
-  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     const data = new FormData(event.currentTarget);

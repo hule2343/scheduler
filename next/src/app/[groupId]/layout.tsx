@@ -14,7 +14,7 @@ export default function TemporaryDrawer({ children }: { children: React.ReactNod
           <Toolbar>
             <MyDrawer />
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              News
+              Scheduler
             </Typography>
             <Button color="inherit">Login</Button>
           </Toolbar>

@@ -6,9 +6,8 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.cruds.response import (
-    slot_response,
-    slots_response,
-    user_response,
+    slot_display,
+    slots_display,
 )
 from app.models.models import GroupUser, Slot, Task, User
 from app.schemas.slot import SlotCreate
@@ -17,7 +16,7 @@ from app.schemas.slot import SlotCreate
 def all(db: Session):
     items = db.scalars(select(Slot)).all()
 
-    return slots_response(items)
+    return slots_display(items)
 
 
 def slot_finished(db: Session):
@@ -26,12 +25,12 @@ def slot_finished(db: Session):
         .scalars()
         .all()
     )
-    return slots_response(item)
+    return slots_display(item)
 
 
 def get(name: str, db: Session):
     item = db.scalars(select(Slot).filter_by(name=name).limit(1)).first()
-    respone_slot = slot_response(item)
+    respone_slot = slot_display(item)
     return respone_slot
 
 

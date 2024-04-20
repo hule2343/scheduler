@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import useSWR from "swr";
 import { fetcher } from "@/axios";
-import { UserResponse } from "@/types/ResponseType";
+import { UserDetailResponse } from "@/types/ResponseType";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import Hiking from "@mui/icons-material/Hiking";
 
@@ -26,29 +26,8 @@ const style = {
 };
 
 export default function MyPage() {
-  ///const { data: user } = useSWR<UserResponse>("/users/me", fetcher);
-  const user = {
-    id: "1",
-    name: "test",
-    room_number: "test",
-    groups: [{ id: "1", name: "test" }],
-    exp_tasks: [{ id: "1", name: "test" }],
-    create_slot: [{ id: "1", name: "test" }],
-    create_task: [
-      { id: "1", name: "testtesst" },
-      { id: "2", name: "testtesst" },
-      { id: "3", name: "testtesst" },
-      { id: "4", name: "testtesst" },
-      { id: "5", name: "testtesst" },
-      { id: "6", name: "testtesst" },
-      {
-        id: "7",
-        name: "test",
-      },
-    ],
-    is_active: false,
-    is_admin: true,
-  };
+  const { data: user } = useSWR<UserDetailResponse>("/users/me", fetcher);
+
   return (
     <>
       <List sx={style}>
@@ -85,7 +64,7 @@ export default function MyPage() {
         </ListItem>
         <Divider component="li" />
         <ListItem>
-          {user?.create_task.map((task) => (
+          {user?.create_tasks.map((task) => (
             <Chip key={task.id} label={task.name} />
           ))}
         </ListItem>

@@ -1,5 +1,7 @@
 import useSWR from "swr";
-import { ResponseBase, TasksResponse } from "@/types/ResponseType";
+import {
+  TemplateResponse,
+} from "@/types/ResponseType";
 import {
   Table,
   TableBody,
@@ -14,30 +16,14 @@ export default function TemplateList({
 }: {
   params: { groupId: string };
 }) {
-  /*const { data, error, isLoading } = useSWR<TasksResponse>(`/${params.groupId}/tasks`, fetcher)
-    if (error) return <div>error</div>
-    if (!data) return <div>no data</div>
-    if (isLoading) return <div>loading...</div>
-    */
-  const data = {
-    templates: [
-      {
-        id: "1",
-        name: "task1",
-        point: 1,
-      },
-      {
-        id: "2",
-        name: "task2",
-        point: 2,
-      },
-      {
-        id: "3",
-        name: "task3",
-        point: 3,
-      },
-    ],
-  };
+  const { data, error, isLoading } = useSWR<{ templates: TemplateResponse[] }>(
+    `/${params.groupId}/templates`,
+    fetcher
+  );
+  if (error) return <div>error</div>;
+  if (!data) return <div>no data</div>;
+  if (isLoading) return <div>loading...</div>;
+
   return (
     <Table>
       <TableHead>
@@ -52,10 +38,14 @@ export default function TemplateList({
           <TableRow key={template.id}>
             <TableCell>{template.name}</TableCell>
             <TableCell>
-              <Link href={`${params.groupId}/templates/${template.id}`}>詳細</Link>
+              <Link href={`${params.groupId}/templates/${template.id}`}>
+                詳細
+              </Link>
             </TableCell>
             <TableCell>
-              <Link href={`${params.groupId}/templates/${template.id}/generate`}>
+              <Link
+                href={`${params.groupId}/templates/${template.id}/generate`}
+              >
                 シフトを募集
               </Link>
             </TableCell>

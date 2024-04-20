@@ -1,11 +1,11 @@
-import axiosBase from "axios";
+import axiosBase, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 
 const axios = axiosBase.create({
-  baseURL: "http://localhost:8888",
+  baseURL: "http://localhost:8000",
   headers: {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "http://localhost:8888",
+    "Access-Control-Allow-Origin": "http://localhost:8000",
   },
   withCredentials: true,
   responseType: "json",
@@ -13,16 +13,15 @@ const axios = axiosBase.create({
 
 axios.interceptors.request.use((config) => {
   const { data } = useSession();
-  
+
   if (config.headers) {
     config.headers.Authorization = `Bearer ${data?.accessToken}`;
   }
-  
+
   return config;
 });
 
+export const fetcher = <T>(url: string): Promise<T> =>
+  axios.get(url).then((res: AxiosResponse<T>) => res.data);
 
-export const fetcher = (url: string) => {
-  return axios.get(url).then((response) => response.data);
-};
 export default axios;

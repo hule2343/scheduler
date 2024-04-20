@@ -1,10 +1,6 @@
 "use client";
 import useSWR from "swr";
-import {
-  ResponseBase,
-  SlotResponse,
-  TasksResponse,
-} from "@/types/ResponseType";
+import { GroupUserResponse } from "@/types/ResponseType";
 import {
   Button,
   Table,
@@ -15,32 +11,15 @@ import {
   Typography,
 } from "@mui/material";
 import axios, { fetcher } from "@/axios";
-import Link from "next/link";
+
 export default function UserList({ params }: { params: { groupId: string } }) {
-  /*const { data, error, isLoading } = useSWR<TasksResponse>(`/${params.groupId}/tasks`, fetcher)
-    if (error) return <div>error</div>
-    if (!data) return <div>no data</div>
-    if (isLoading) return <div>loading...</div>
-    */
-  const data = {
-    users: [
-      { id: "1", name: "test", room_number: "1", point: 100, role: "super" },
-      {
-        id: "2",
-        name: "test2",
-        room_number: "2",
-        point: 200,
-        role: "normal",
-      },
-      {
-        id: "3",
-        name: "test3",
-        room_number: "3",
-        point: 30,
-        role: "normal",
-      },
-    ],
-  };
+  const { data, error, isLoading } = useSWR<{ users: GroupUserResponse[] }>(
+    `/${params.groupId}/users`,
+    fetcher
+  );
+  if (error) return <div>error</div>;
+  if (!data) return <div>no data</div>;
+  if (isLoading) return <div>loading...</div>;
 
   const handleRoleChange = (userId: string, role: string) => {
     axios

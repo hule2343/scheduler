@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.cruds import template as crud
 from app.cruds.auth import check_privilege, get_current_active_user
+from app.cruds.response import tasktemplate_display, template_display
 from app.database import get_db
 from app.models.models import Task, TaskTemplate, Template, User
 from app.schemas.template import (
@@ -18,26 +19,6 @@ from app.schemas.template import (
 )
 
 router = APIRouter()
-
-
-def template_display(template: Template):
-    return {
-        "id": template.id,
-        "name": template.name,
-        "group_id": template.group_id,
-        "slots": [tasktemplate_display(task) for task in template.tasktemplates],
-    }
-
-
-def tasktemplate_display(tasktemplate: TaskTemplate):
-    return {
-        "id": tasktemplate.id,
-        "name": tasktemplate.slot_name(),
-        "task_id": tasktemplate.task_id,
-        "date_from_start": tasktemplate.date_from_start,
-        "start_time": tasktemplate.start_time,
-        "end_time": tasktemplate.end_time,
-    }
 
 
 @router.get("/", response_model=TemplateList)

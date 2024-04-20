@@ -6,25 +6,12 @@ from sqlalchemy.orm import Session
 
 import app.cruds.slot as crud
 from app.cruds.auth import check_privilege, get_current_active_user
+from app.cruds.response import slot_display
 from app.database import get_db
 from app.models.models import Slot, Task, User
-from app.schemas.slot import SlotCreate, SlotDisplay, SlotList,SlotDelete
+from app.schemas.slot import SlotCreate, SlotDelete, SlotDisplay, SlotList
 
 router = APIRouter()
-
-
-def slot_display(slot: Slot):
-    return {
-        "id": slot.id,
-        "name": slot.name,
-        "start_time": slot.start_time,
-        "end_time": slot.end_time,
-        "creater_id": slot.creater_id,
-        "creater_name": slot.creater.name,
-        "assignees": [{"id": user.id, "name": user.name} for user in slot.assignees],
-        "task_id": slot.task_id,
-        "task_name": slot.task.name,
-    }
 
 
 @router.get("/", response_model=SlotList)
@@ -52,12 +39,12 @@ async def slot_list(
 @router.post("/", response_model=SlotDisplay)
 async def slot_post(
     group_id: str,
-    slot: SlotCreate,
+    request: SlotCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
     check_privilege(group_id, user.id, "normal", db)
-    slot = crud.post(slot, db, user)
+    slot = crud.post(request, db, user)
     return slot_display(slot)
 
 
@@ -65,16 +52,17 @@ async def slot_post(
 async def slots_delete(
     group_id: str,
     expired: bool | None = None,
-    request: SlotDelete |None = None,
+    request: SlotDelete | None = None,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     check_privilege(group_id, user.id, "normal", db)
     if expired:
-        expired_slots = crud.delete_expired_slots(group_id,db)
+        expired_slots = crud.delete_expired_slots(group_id, db)
         return expired_slots
-    slots = crud.bulk_delete(group_id,request.slots, db)
+    slots = crud.bulk_delete(group_id, request.slots, db)
     return slots
+
 
 @router.get("/{slot_id}", response_model=SlotDisplay)
 async def slot_get(
@@ -91,7 +79,13 @@ async def slot_get(
 
 
 @router.patch("/{slot_id}")
-async def slot_patch(group_id:str,slot_id: str, request: SlotCreate,user:User=Depends(get_current_active_user), db: Session = Depends(get_db)):
+async def slot_patch(
+    group_id: str,
+    slot_id: str,
+    request: SlotCreate,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
     check_privilege(group_id, user.id, "normal", db)
     slot = crud.patch(request, slot_id, db)
     return slot_display(slot)
@@ -140,5 +134,3 @@ async def slot_complete(
     check_privilege(group_id, user.id, "normal", db)
     slot = crud.complete(group_id, slot_id, done, user, db)
     return slot_display(slot)
-
-

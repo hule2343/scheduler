@@ -3,15 +3,15 @@ from sqlalchemy import update
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session, joinedload
 
-from app.cruds.response import task_response, tasks_response
-from app.models.models import Task, TaskTag
+from app.cruds.response import task_display, tasks_display
+from app.models.models import Task,User
 from app.schemas.task import TaskCreate
-from app.schemas.users import User
+
 
 
 def all(db: Session):
     items = db.scalars(select(Task).options(joinedload(Task.creater))).unique().all()
-    return tasks_response(items)
+    return tasks_display(items)
 
 
 async def task_get(name: str, db: Session):
@@ -23,7 +23,7 @@ def post(task: TaskCreate, current_user: User, db: Session):
     task = Task(creater=current_user, **task.dict())
     db.add(task)
     db.commit()
-    return task_response(task)
+    return task_display(task)
 
 
 def delete(name: str, db: Session):
@@ -62,12 +62,3 @@ def patch(request: TaskCreate, task_id: str, db: Session):
     return task
 
 
-def add_tag(request: list[str], task_id: str, db: Session):
-    task = db.get(Task, task_id)
-    new_tag = []
-    for tag_id in request:
-        tag = db.get(TaskTag, tag_id)
-        new_tag.append(tag)
-    task.tag = list(set(new_tag))
-    db.commit()
-    return task

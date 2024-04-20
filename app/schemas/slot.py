@@ -8,7 +8,7 @@ class SlotCreate(BaseModel):
     end_time: str
     task_id: UUID
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class SlotDeleteRequest(BaseModel):
@@ -25,15 +25,15 @@ class SlotDisplay(SlotCreate):
     assignees:list[Assignee]=[]
     task_name: str
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class SlotList(BaseModel):
     slots: list[SlotDisplay]
 
     class Config:
-        orm_mode = True
+        from_attributes=True
 
 class SlotDelete(BaseModel):
     slots: list[UUID]
     class Config:
-        orm_mode = True
+        from_attributes=True

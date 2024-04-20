@@ -1,6 +1,5 @@
 {
   // python path
-  "python.defaultInterpreterPath": "${workspaceFolder}/app/.venv/bin/python",
   "[python]": {
     "editor.codeActionsOnSave": {
       "source.organizeImports": "explicit"
@@ -10,5 +9,8 @@
     "editor.formatOnSave": true
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "python.analysis.extraPaths": [
+    "/home/taira/.local/lib/python3.10/site-packages"
+  ]
 }

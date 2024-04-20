@@ -1,232 +1,95 @@
-from app.models.models import User
-from app.models.models import Slot, Bidder, Bid, Task, Template, GroupUser
-from sqlalchemy.orm import Session
-from sqlalchemy.future import select
-from datetime import datetime
+from app.models.models import GroupUser, Slot, Task, TaskTemplate, Template, User
 
 
-def datetime_response(datetime: datetime):
+def response_base(model):
     return {
-        "year": datetime.year,
-        "month": datetime.month,
-        "day": datetime.day,
-        "hour": datetime.hour,
-        "minute": datetime.minute,
+        "id": model.id,
+        "name": model.name,
     }
 
 
-def bid_response(bid: Bid):
-    response = {
-        "id": bid.id,
-        "name": bid.name,
-        "open_time": datetime_response(bid.open_time),
-        "close_time": datetime_response(bid.close_time),
-        "slot": {
-            "id": bid.slot_id,
-            "name": bid.slot.name,
-            "start_time": datetime_response(bid.slot.start_time),
-            "end_time": datetime_response(bid.slot.end_time),
-            "assignees": [
-                {"id": user.id, "name": user.name}
-                for user in bid.slot.assignees
-            ],
-        },
-        "start_point": bid.slot.task.start_point,
-        "buyout_point": bid.slot.task.buyout_point,
-        "is_complete": bid.is_complete,
+def user_display(user: User):
+    return {
+        "id": user.id,
+        "name": user.name,
+        "room_number": user.room_number,
+        "is_active": user.is_active,
     }
-    return response
 
 
-def bids_response(bids: list[Bid]):
-    respone_bids = [bid_response(bid) for bid in bids]
-    return respone_bids
-
-
-def bids_with_name_response(bids: list[Bid]):
-    response = [
-        {
-            "id": bid.id,
-            "name": bid.name,
-        }
-        for bid in bids
-    ]
-
-    return response
-
-
-def bids_for_user_response(bids: list[Bid], user: User, db: Session):
-    respone_bids = bids_response(bids)
-    for bid in respone_bids:
-        bidder = db.scalars(
-            select(Bidder)
-            .filter(Bidder.bid_id == bid["id"], Bidder.user_id == user.id)
-            .join(Bid.bidders)
-            .order_by(Bidder.point)
-            .limit(1)
-        ).first()
-        if bidder is None:
-            bid["user_bidpoint"] = "notyet"
-        else:
-            bid["user_bidpoint"] = bidder.point
-    return respone_bids
-
-
-def bidder_response(bidder: Bidder):
-    response = {
-        "id": bidder.bid_id,
-        "name": bidder.bid.name,
-        "user_id": bidder.user_id,
-        "user": bidder.user.name,
-        "point": bidder.point,
+def user_detail_display(user: User):
+    return user_display(user) | {
+        "groups": [
+            {"id": group.group_id, "name": group.group.name} for group in user.groups
+        ],
+        "exp_tasks": [response_base(task) for task in user.exp_tasks],
+        "slots": [response_base(slot) for slot in user.slots],
+        "create_slot": [response_base(slot) for slot in user.create_slot],
+        "create_task": [response_base(task) for task in user.create_task],
+        "is_admin": user.is_admin,
     }
-    return response
 
 
-def bidders_response(bidder: list[Bidder]):
-    response = [
-        {
-            "id": bidder.bid_id,
-            "name": bidder.bid.name,
-            "user_id": bidder.user_id,
-            "user": bidder.user.name,
-            "point": bidder.point,
-        }
-        for bidder in bidder
-    ]
-    return response
-
-
-def slot_response(slot: Slot):
-    response = {
+def slot_display(slot: Slot):
+    return {
         "id": slot.id,
         "name": slot.name,
-        "start_time": datetime_response(slot.start_time),
-        "end_time": datetime_response(slot.end_time),
-        "assignees": [
-            {"id": user.id, "name": user.name} for user in slot.assignees
-        ],
-        "creater": creater_response(slot.creater),
-        "task": task_response(slot.task),
+        "start_time": slot.start_time,
+        "end_time": slot.end_time,
+        "creater_id": slot.creater_id,
+        "creater_name": slot.creater.name,
+        "assignees": [response_base(user) for user in slot.assignees],
+        "task_id": slot.task_id,
+        "task_name": slot.task.name,
     }
-    return response
 
+def slots_display(slots: Slot):
+    return [slot_display(slot) for slot in slots]
 
-def slots_response(slots: list[Slot]):
-    response = [slot_response(slot) for slot in slots]
-    return response
-
-
-def task_response(task: Task):
-    response_task = {
+def task_display(task: Task):
+    return {
         "id": task.id,
         "name": task.name,
         "detail": task.detail,
         "max_worker_num": task.max_worker_num,
         "min_worker_num": task.min_worker_num,
         "exp_worker_num": task.exp_worker_num,
-        "start_point": task.start_point,
-        "buyout_point": task.buyout_point,
+        "point": task.point,
         "creater_id": task.creater_id,
-        "creater": task.creater.name,
+        "creater_name": task.creater.name,
+        "group_id": task.group_id,
     }
-    return response_task
+
+def tasks_display(tasks: Task):
+    return [task_display(task) for task in tasks]
 
 
-def tasks_response(tasks: list[Task]):
-    response_tasks = [
-        {
-            "id": task.id,
-            "name": task.name,
-            "detail": task.detail,
-            "max_worker_num": task.max_worker_num,
-            "min_worker_num": task.min_worker_num,
-            "exp_worker_num": task.exp_worker_num,
-            "start_point": task.start_point,
-            "buyout_point": task.buyout_point,
-            "creater_id": task.creater_id,
-            "creater": task.creater.name,
-        }
-        for task in tasks
-    ]
-
-    return response_tasks
-
-
-def groupusers_response(groupuser: list[GroupUser]):
-    response = [
-        {
-            "id": gu.group.id,
-            "name": gu.group.name,
-            "point": gu.point,
-            "role": gu.role,
-        }
-        for gu in groupuser
-    ]
-    return response
-
-
-def user_response(user: User):
-    response_user = {
-        "id": user.id,
-        "name": user.name,
-        "group": groupusers_response(user.group),
-        "room_number": user.room_number,
-        "exp_task": tasks_response(user.exp_tasks),
-        "slots": [{"id": slot.id, "name": slot.name} for slot in user.slots],
-        "create_slot": [
-            {"id": slot.id, "name": slot.name} for slot in user.create_slot
-        ],
-        "create_task": [
-            {"id": slot.id, "name": slot.name} for slot in user.create_task
-        ],
-        "point": user.point,
-        "bid": [
-            {"id": bidder.bid_id, "name": bidder.bid.name}
-            for bidder in user.bids
-        ],
-        "is_active": user.is_active,
-    }
-    return response_user
-
-
-def creater_response(user: User):
-    response_user = {
-        "id": user.id,
-        "name": user.name,
-        "room_number": user.room_number,
-    }
-    return response_user
-
-
-def users_response(users: list[User]):
-    response_users = [
-        {
-            "id": user.id,
-            "name": user.name,
-            "room_number": user.room_number,
-            "point": user.point,
-            "is_active": user.is_active,
-        }
-        for user in users
-    ]
-    return response_users
-
-
-def template_response(template: Template):
-    response_template = {
+def template_display(template: Template):
+    return {
         "id": template.id,
         "name": template.name,
-        "tasks": [
-            {"id": task.task_id, "name": task.task.name}
-            for task in template.tasktemplates
-        ],
+        "group_id": template.group_id,
+        "slots": [tasktemplate_display(task) for task in template.tasktemplates],
     }
-    return response_template
 
 
-def templates_response(templates: list[Template]):
-    response_templates = [
-        template_response(template) for template in templates
-    ]
-    return response_templates
+def tasktemplate_display(tasktemplate: TaskTemplate):
+    return {
+        "id": tasktemplate.id,
+        "name": tasktemplate.slot_name(),
+        "task_id": tasktemplate.task_id,
+        "date_from_start": tasktemplate.date_from_start,
+        "start_time": tasktemplate.start_time,
+        "end_time": tasktemplate.end_time,
+    }
+
+
+def group_user_display(user: GroupUser):
+    return {
+        "id": user.user_id,
+        "name": user.user.name,
+        "room_number": user.user.room_number,
+        "point": user.point,
+        "role": user.role,
+        "is_active": user.user.is_active,
+    }

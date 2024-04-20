@@ -1,5 +1,3 @@
-import axios from "@/axios";
-import { Fetcher } from "swr";
 export type ListProps = {
   url: string;
 };
@@ -24,11 +22,16 @@ export type GroupUsersResponse = {
 
 export type UserResponse = ResponseBase & {
   room_number: string;
+  is_active: boolean;
+};
+
+export type UserDetailResponse = ResponseBase & {
+  room_number: string;
   groups: ResponseBase[];
   exp_tasks: ResponseBase[];
   slots: ResponseBase[];
-  create_slot: ResponseBase[];
-  create_task: ResponseBase[];
+  create_slots: ResponseBase[];
+  create_tasks: ResponseBase[];
   is_active: boolean;
   is_admin: boolean;
 };
@@ -64,7 +67,7 @@ export type TemplateTask = ResponseBase & {
   end_time: string;
 };
 
-export type TemplateTaskResponse =TemplateTask & {
+export type TemplateTaskResponse = TemplateTask & {
   task_id: string;
 };
 

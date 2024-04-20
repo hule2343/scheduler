@@ -11,34 +11,11 @@ import { useState } from "react";
 import axios, { fetcher } from "@/axios";
 import { MultiSelect } from "@/components/form/MultiSelect";
 import useSWR from "swr";
+import { UserDetailResponse } from "@/types/ResponseType";
 export default function ProfileEdit() {
   const [exp_task, setExpTask] = useState<string[]>([]);
-  ///const { data: user } = useSWR("/users/me", fetcher);
-  const user = {
-    id: "1",
-    name: "test",
-    room_number: "test",
-    groups: [{ id: "1", name: "test" }],
-    exp_tasks: [
-      { id: "1", name: "test" },
-      { id: "2", name: "testtesst" },
-    ],
-    create_slot: [{ id: "1", name: "test" }],
-    create_task: [
-      { id: "1", name: "testtesst" },
-      { id: "2", name: "testtesst" },
-      { id: "3", name: "testtesst" },
-      { id: "4", name: "testtesst" },
-      { id: "5", name: "testtesst" },
-      { id: "6", name: "testtesst" },
-      {
-        id: "7",
-        name: "test",
-      },
-    ],
-    is_active: false,
-    is_admin: true,
-  };
+  const { data: user } = useSWR<UserDetailResponse>("/users/me", fetcher);
+
   React.useEffect(() => {
     if (!user) {
       return;
