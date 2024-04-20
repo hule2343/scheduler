@@ -22,17 +22,24 @@ DB_NAME = os.environ.get("POSTGRES_DB")
 
 client = TestClient(app)
 
+admin_user={
+    "name": "admin_user",
+    "password": "adminUserPassword",
+    "room_number": "B310",
+    "is_admin": True,
+}
+
 testUser = {
     "name": "test_user",
     "password": "testUserPassword",
-    "block": "B3",
     "room_number": "B310",
+    "is_admin": True,
 }
 testUser2 = {
     "name": "test_user_2",
     "password": "testUser2Password",
-    "block": "B3",
     "room_number": "B310",
+    "is_admin": True,
 }
 
 

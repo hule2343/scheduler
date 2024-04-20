@@ -1,13 +1,14 @@
 from conftest import client
+from app.
 
 user={
         "name":"testUser",
         "password":"testUserPassword",
-        "block":"B3",
-        "room_number":"B310"
+        "room_number":"B310",
+        "is_admin":False,
     }
 
-def test_sign_up():
+def test_create_user():
     
     response=client.post("/register/",json=user)
     assert response.status_code == 200
