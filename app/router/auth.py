@@ -31,7 +31,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-
+'''
 @router.post("/register", response_model=AdminUserDisplay)
 async def user_register(user: AdminUserCreate, db: Session = Depends(get_db)):
     generated_user = crud.create_admin(user, db)
@@ -41,7 +41,7 @@ async def user_register(user: AdminUserCreate, db: Session = Depends(get_db)):
         )
 
     return user_display(generated_user)
-
+'''
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
