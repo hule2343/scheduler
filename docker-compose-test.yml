@@ -5,7 +5,8 @@ services:
     image: "pytest"
     container_name: "pytest"
     depends_on:
-      - testdb
+      testdb:
+        condition: service_healthy
     build:
       context: ./docker/test
       dockerfile: Dockerfile
@@ -18,7 +19,7 @@ services:
       - ./tests:/usr/src/app/tests:cached
       - ./db:/usr/src/app/db:cached
     working_dir: /usr/src/app/scripts
-    command: bash -c "./test.sh"
+    command: bash -c "./test.sh && /bin/bash"
     networks:
       - fastapi_test_network
     environment:
@@ -43,6 +44,13 @@ services:
       TZ: "Asia/Tokyo"
     env_file:
       - .env.development
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    
 networks:
   default:
     external:

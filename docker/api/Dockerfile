@@ -2,7 +2,6 @@ FROM python:3.11-bullseye
 
 
 RUN apt update \
-    && apt install -y default-mysql-client \
     && apt install --no-install-recommends -y tzdata \
     && apt clean
 
