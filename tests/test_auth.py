@@ -11,7 +11,7 @@ user = {
 
 
 def test_create_user():
-    response = create_admin(user)
+    response = create_admin(user["name"], user["password"], user["room_number"])
     assert response.name == "testUser"
     assert response.room_number == "B310"
     assert verify_password(user["password"], response.password)
