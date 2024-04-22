@@ -52,9 +52,6 @@ services:
 
     
 networks:
-  default:
-    external:
-      name: bridge
   fastapi_test_network:
     name: fastapi_test_network
     driver: bridge

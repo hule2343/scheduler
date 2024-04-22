@@ -1,0 +1,1 @@
+cd /usr/src/next && yarn dev

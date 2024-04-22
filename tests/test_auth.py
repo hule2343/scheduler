@@ -23,23 +23,25 @@ def test_create_user():
     )
     access_token = response_user.json().get("access_token")
     print("access_token", response_user.json())
+    assert response_user.status_code == 200
     assert access_token
-    assert response_user.json().get("name") == "testUser"
     assert response_user.json().get("id")
+    assert response_user.json().get("name") == "testUser"
     assert response_user.json().get("token_type") == "bearer"
 
     response_get = client.get(
-        "/admin/users/" + response.json().get("id"),
+        "/admin/users/" + response_user.json().get("id"),
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response_get.status_code == 200
     assert response_get.json().get("name") == "testUser"
     assert response_get.json().get("room_number") == "B310"
+
     response_group = client.post(
         "/admin/groups",
         headers={"Authorization": f"Bearer {access_token}"},
-        data={"name": "testGroup"},
-    )
+        json={"name": "testGroup"},
+                )
     assert response_group.status_code == 200
     assert response_group.json().get("name") == "testGroup"
     response_group_get = client.get(
@@ -51,7 +53,7 @@ def test_create_user():
     response_user2 = client.post(
         "/admin/users",
         headers={"Authorization": f"Bearer {access_token}"},
-        data={
+        json={
             "name": "testUser2",
             "room_number": "B311",
             "password": "superUserPassword",
@@ -73,7 +75,7 @@ def test_create_user():
     response = client.post(
         "/admin/groups/" + response_group.json().get("id") + "/adduser",
         headers={"Authorization": f"Bearer {access_token}"},
-        data={"users": [response_user2.json().get("id")]},
+        json={"users": [response_user2.json().get("id")]},
     )
     assert response.status_code == 200
     assert response.json().get("users")[0].get("name") == "testUser2"
@@ -90,19 +92,18 @@ def test_create_user():
     fail_create_group = client.post(
         "/admin/groups",
         headers={"Authorization": f"Bearer {super_user_token}"},
-        data={"name": "testGroup2"},
+        json={"name": "testGroup2"},
     )
     assert fail_create_group.status_code == 403
     fail_create_user = client.post(
         "/admin/users",
         headers={"Authorization": f"Bearer {super_user_token}"},
-        data={"name": "testUser3", "room_number": "B312", "is_admin": True},
+        json={"name": "testUser3", "room_number": "B312", "is_admin": True},
     )
     assert fail_create_user.status_code == 403
     fail_user_add=client.post(
         "/admin/groups/" + response_group.json().get("id") + "/adduser",
         headers={"Authorization": f"Bearer {super_user_token}"},
-        data={"users": [response_user.json().get("id")]},
+        json={"users": [response_user.json().get("id")]},
     )
     assert fail_user_add.status_code == 403
-    

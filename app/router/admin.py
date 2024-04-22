@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
+from app.cruds.auth import get_admin_user
 from app.cruds.response import response_base, user_detail_display, user_display
 from app.cruds.user import create_admin
 from app.database import get_db
@@ -10,19 +11,26 @@ from app.router.user import group_user_display
 from app.schemas.admin import AddSuperUserRequest, GroupPostRequest
 from app.schemas.users import AdminUserCreate, AdminUserPatch
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(get_admin_user)],
+)
 
 
 @router.get("/users")
-async def admin_user_list(db: Session = Depends(get_db)):
+async def admin_user_list(
+    db: Session = Depends(get_db),
+):
     users = db.scalars(select(User)).all()
     return {"users": [user_display(user) for user in users]}
 
 
 @router.post("/users")
-async def admin_user_register(user: AdminUserCreate, db: Session = Depends(get_db)):
-    generated_user = create_admin(user, db)
-    if not user:
+async def admin_user_register(
+    request: AdminUserCreate,
+    db: Session = Depends(get_db),
+):
+    generated_user = create_admin(request, db)
+    if not generated_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
@@ -31,7 +39,10 @@ async def admin_user_register(user: AdminUserCreate, db: Session = Depends(get_d
 
 
 @router.get("/users/{user_id}")
-async def admin_user_detail(user_id: str, db: Session = Depends(get_db)):
+async def admin_user_detail(
+    user_id: str,
+    db: Session = Depends(get_db),
+):
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(
@@ -42,7 +53,9 @@ async def admin_user_detail(user_id: str, db: Session = Depends(get_db)):
 
 @router.patch("/users/{user_id}")
 async def admin_user_patch(
-    user_id: str, request: AdminUserPatch, db: Session = Depends(get_db)
+    user_id: str,
+    request: AdminUserPatch,
+    db: Session = Depends(get_db),
 ):
     user = db.get(User, user_id)
     if not user:
@@ -55,27 +68,36 @@ async def admin_user_patch(
         request.is_active if request.is_active is not None else user.is_active
     )
     user.is_admin = request.is_admin if request.is_admin is not None else user.is_admin
-    await db.commit()
-    await db.refresh(user)
+    db.commit()
+    db.refresh(user)
     return user_display(user)
 
 
 @router.get("/groups")
-async def group_list(db: Session = Depends(get_db)):
+async def group_list(
+    db: Session = Depends(get_db),
+):
     groups = db.scalars(select(Group)).all()
     return {"groups": [response_base(group) for group in groups]}
 
 
 @router.post("/groups")
-async def create_group(request: GroupPostRequest, db: Session = Depends(get_db)):
+async def create_group(
+    request: GroupPostRequest,
+    db: Session = Depends(get_db),
+):
     group = Group(name=request.name)
     db.add(group)
-    await db.commit()
-    await db.refresh(group)
+    db.commit()
+    db.refresh(group)
     return group
 
+
 @router.get("/groups/{group_id}")
-async def get_group(group_id: str, db: Session = Depends(get_db)):
+async def get_group(
+    group_id: str,
+    db: Session = Depends(get_db),
+):
     group = db.get(Group, group_id)
     if not group:
         raise HTTPException(
@@ -83,14 +105,15 @@ async def get_group(group_id: str, db: Session = Depends(get_db)):
         )
     return response_base(group)
 
+
 @router.patch("/groups/{group_id}")
 async def patch_gorup(
     group_id: str, request: GroupPostRequest, db: Session = Depends(get_db)
 ):
     group = db.get(Group, group_id)
     group.name = request.name
-    await db.commit()
-    await db.refresh(group)
+    db.commit()
+    db.refresh(group)
     return group
 
 
@@ -108,17 +131,19 @@ async def create_superuser(
 ):
     response_users = []
     for user_id in request.users:
-        group_user = db.get(GroupUser, user_id)
+        group_user = db.scalars(
+            select(GroupUser).filter_by(user_id=user_id, group_id=group_id).limit(1)
+        ).first()
         if not group_user:
             group_user = GroupUser(user_id=user_id, group_id=group_id, role="super")
             db.add(group_user)
-            await db.commit()
-            await db.refresh(group_user)
+            db.commit()
+            db.refresh(group_user)
             response_users.append(group_user)
             continue
         group_user.role = "super"
-        await db.commit()
-        await db.refresh(group_user)
+        db.commit()
+        db.refresh(group_user)
         response_users.append(group_user)
 
     return {"users": [group_user_display(user) for user in response_users]}
