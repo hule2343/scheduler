@@ -20,6 +20,8 @@ class UserUpdate(UserBase):
 class AdminUserCreate(UserBase):
     password: str
     is_admin: bool
+    class Config:
+        orm_mode = True
     
 class AdminUserPatch(UserBase):
     is_active: bool

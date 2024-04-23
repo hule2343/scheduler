@@ -1,7 +1,7 @@
-FROM node:lts-alpine3.16
-WORKDIR /usr/src/react
+FROM node:lts-alpine3.19
+WORKDIR /usr/src/next
 RUN npm install yarn
-ADD ./react .
+ADD ./next .
 RUN yarn install
 WORKDIR /usr/src/scripts
 COPY ./scripts .

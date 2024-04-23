@@ -86,13 +86,19 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     raise HTTPException(status_code=400, detail="Inactive user")
 
 
+async def get_admin_user(current_user: User = Depends(get_current_user)):
+    if current_user.is_admin and current_user.is_active:
+        return current_user
+    raise HTTPException(status_code=403, detail="Not admin user")
+
+
 def check_privilege(
     group_id: str, user_id: str, role: Role, db: Session = Depends(get_db)
 ):
-    group_user =db.scalars(
+    group_user = db.scalars(
         select(GroupUser).filter_by(group_id=group_id, user_id=user_id).limit(1)
     ).first()
-    user=db.get(User,user_id)
+    user = db.get(User, user_id)
     if not group_user:
         raise HTTPException(status_code=403, detail="このグループには所属していません")
 

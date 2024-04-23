@@ -63,13 +63,13 @@ class Task(Base):
         ForeignKey("user.id", ondelete="SET NULL")
     )
     creater: Mapped[None | User] = relationship(back_populates="create_task")
-    tasktemplates: Mapped[None | list["TaskTemplate"]] = relationship(
+    tasktemplates: Mapped[None | list[TaskTemplate]] = relationship(
         back_populates="task"
     )
     group_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("group.id", ondelete="CASCADE")
     )
-    group: Mapped["Group"] = relationship(back_populates="tasks")
+    group: Mapped[Group] = relationship(back_populates="tasks")
 
 
 class TaskTemplate(Base):

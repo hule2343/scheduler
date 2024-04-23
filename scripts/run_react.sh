@@ -1,1 +1,0 @@
-cd /usr/src/react && yarn run react-scripts start

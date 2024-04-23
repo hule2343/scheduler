@@ -1,12 +1,11 @@
-version: "3.7"
 
 services:
-  react:
+  next:
     build: 
       context: ./
-      dockerfile: ./docker/react/Dockerfile
-    container_name: tb-front-container
-    hostname: tb-front-container
+      dockerfile: ./docker/next/Dockerfile
+    container_name: scheduler-front
+    hostname: scheduler-front
     depends_on:
       - api
       - db
@@ -14,15 +13,17 @@ services:
     environment:
       - NODE_ENV=DEVELOPMENT
     volumes:
-      - react-data:/usr/src/react/node_modules
-      - ./react:/usr/src/react
+      - node_modules:/usr/src/next/node_modules
+      - ./next:/usr/src/next
       - ./scripts:/usr/src/scripts
     ports:
       - 3000:3000
+    networks:
+      - scheduler-front
     working_dir: /usr/src/scripts
-    command: ["sh","./run_react.sh"]
+    command: ["sh","./run_next.sh"]
   api:
-    image: "fastapi_starter:1.0.0"
+    image: "fastapi_starter"
     container_name: "fastapi_starter"
     depends_on:
       db:
@@ -32,6 +33,8 @@ services:
       dockerfile: ./docker/api/Dockerfile
     ports:
       - "8888:8000"
+    networks:
+      - scheduler-front
     volumes:
       - ./app:/usr/src/app/app:cached
       - ./db:/usr/src/app/db:cached
@@ -67,5 +70,11 @@ services:
       retries: 5
 
 volumes:
-  react-data:
+  node_modules:
   postgres_volume:
+
+networks:
+  scheduler-front:
+    name: scheduler-front
+    driver: bridge
+    external: true

@@ -1,16 +1,18 @@
-import pytest
+import os
 import typing
-import httpx
-from starlette.types import ASGIApp
 from uuid import uuid4
+
+import httpx
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker, scoped_session
-from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy.orm.session import close_all_sessions
+from starlette.types import ASGIApp
+
 from app.database import Base, get_db
 from app.main import app
-import os
 
 _RequestData = typing.Mapping[str, typing.Union[str, typing.Iterable[str]]]
 
@@ -22,17 +24,24 @@ DB_NAME = os.environ.get("POSTGRES_DB")
 
 client = TestClient(app)
 
+admin_user = {
+    "name": "admin_user",
+    "password": "adminUserPassword",
+    "room_number": "B310",
+    "is_admin": True,
+}
+
 testUser = {
     "name": "test_user",
     "password": "testUserPassword",
-    "block": "B3",
     "room_number": "B310",
+    "is_admin": True,
 }
 testUser2 = {
     "name": "test_user_2",
     "password": "testUser2Password",
-    "block": "B3",
     "room_number": "B310",
+    "is_admin": True,
 }
 
 
@@ -81,7 +90,6 @@ class MyTestClient(TestClient):
             .json()
             .get("access_token")
         )
-        print(self.access_token, "conftest.py")
 
     def get(
         self,
@@ -156,17 +164,14 @@ class TestingSession(Session):
 
 @pytest.fixture(scope="session", autouse=True)
 def test_db():
-    print("test_db_called")
     DATABASE = "postgresql+psycopg2://%s:%s@testdb:5432/%s" % (
         DB_USER,
         DB_PASSWORD,
         DB_NAME,
     )
-    print(DATABASE, "データベース")
     engine = create_engine(DATABASE, echo=False)
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    print("create_all_executed")
 
     function_scope = uuid4().hex
     TestingSessionLocal = scoped_session(
@@ -182,7 +187,6 @@ def test_db():
 
     def get_db_for_testing():
         db = TestingSessionLocal()
-        print("called get_test_db")
         try:
             yield db
             db.commit()

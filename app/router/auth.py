@@ -1,5 +1,5 @@
 from datetime import timedelta
-
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -22,16 +22,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 router = APIRouter()
 
 
-class LoginForm(BaseModel):
-    username: str
-    password: str
-
-
 class Token(BaseModel):
     access_token: str
     token_type: str
+    id:UUID
+    name:str
 
 
+'''
 @router.post("/register", response_model=AdminUserDisplay)
 async def user_register(user: AdminUserCreate, db: Session = Depends(get_db)):
     generated_user = crud.create_admin(user, db)
@@ -41,7 +39,7 @@ async def user_register(user: AdminUserCreate, db: Session = Depends(get_db)):
         )
 
     return user_display(generated_user)
-
+'''
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
@@ -61,9 +59,9 @@ async def login_for_access_token(
     )
     return {
         "access_token": access_token,
+        "token_type": "bearer",
         "id": user.id,
         "name": user.name,
-        "token_type": "bearer",
     }
 
 
