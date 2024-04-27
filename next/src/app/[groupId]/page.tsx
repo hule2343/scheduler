@@ -20,7 +20,7 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
   const session = useSession();
   if (error || session.status === "unauthenticated")
     return <div>Loading Failed</div>;
-  if (!data || session.data===undefined) return <div>loading...</div>;
+  if (!data || session.data===null) return <div>loading...</div>;
   if (isLoading) return <div>loading...</div>;
 
   const days = Array.from(

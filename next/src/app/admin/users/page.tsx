@@ -1,3 +1,4 @@
+'use client'
 import useSWR from "swr";
 import { ResponseBase, SlotResponse, TasksResponse, UserResponse } from "@/types/ResponseType";
 import { Button, Grid, List, ListItem, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";

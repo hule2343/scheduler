@@ -1,9 +1,7 @@
+'use client'
 import {
-  Box,
   Chip,
-  Container,
   Divider,
-  Grid,
   List,
   ListItem,
   ListItemText,

@@ -12,6 +12,7 @@ import axios, { fetcher } from "@/axios";
 import { MultiSelect } from "@/components/form/MultiSelect";
 import useSWR from "swr";
 import { UserDetailResponse } from "@/types/ResponseType";
+
 export default function ProfileEdit() {
   const [exp_task, setExpTask] = useState<string[]>([]);
   const { data: user } = useSWR<UserDetailResponse>("/users/me", fetcher);
