@@ -9,9 +9,9 @@ class TaskBase(BaseModel):
 
 
 class TaskCreate(TaskBase):
-    max_woker_num: int = Field(default=1, gt=1)
-    min_woker_num: int = Field(default=1, gt=0)
-    exp_woker_num: int = Field(default=0, gt=0)
+    max_worker_num: int = Field(default=1, gt=1)
+    min_worker_num: int = Field(default=1, gt=0)
+    exp_worker_num: int = Field(default=0, gt=0)
     point: int = Field(0, gt=0)
 
 
@@ -25,7 +25,7 @@ class TaskDisplay(TaskCreate):
         from_attributes = True
 
 
-class TaskList(TaskBase):
+class TaskList(BaseModel):
     tasks: list[TaskDisplay]
 
     class Config:

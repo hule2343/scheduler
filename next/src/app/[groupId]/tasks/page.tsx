@@ -1,3 +1,4 @@
+'use client';
 import useSWR from "swr";
 import { TasksResponse } from "@/types/ResponseType";
 import {

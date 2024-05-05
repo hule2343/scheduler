@@ -7,7 +7,7 @@ export type ResponseBase = {
 };
 
 export type GroupResponse = ResponseBase & {
-  role: "super" | "normal" | "pending";
+  role: "super" | "normal" | "pending"| null;
 };
 
 export type GroupUserResponse = GroupResponse & {

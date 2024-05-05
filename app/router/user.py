@@ -17,7 +17,7 @@ async def group_user_list(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "normal")
+    check_privilege(group_id, user.id, "normal",db)
     users = [group_user_display(user) for user in db.get(Group, group_id).users]
     return {"users": users}
 
@@ -29,7 +29,7 @@ async def add_user(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "super")
+    check_privilege(group_id, user.id, "super",db)
 
     target_user = db.scalars(
         select(GroupUser)
@@ -84,7 +84,7 @@ async def delete_groupuser(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "super")
+    check_privilege(group_id, user.id, "super",db)
 
     target_user = db.scalars(
         select(GroupUser)
@@ -109,7 +109,7 @@ async def change_user_role(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "super")
+    check_privilege(group_id, user.id, "super",db)
 
     target_user = db.scalars(
         select(GroupUser)

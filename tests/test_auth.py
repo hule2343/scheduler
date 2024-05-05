@@ -1,7 +1,7 @@
 from conftest import client
 
 from app.cruds.auth import verify_password
-from app.manage.create_user import create_admin
+from app.cruds.admin import create_admin
 
 user = {
     "name": "testUser",

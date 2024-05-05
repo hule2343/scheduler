@@ -17,7 +17,7 @@ const authOption: AuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const response = await axios.post("/login", credentials, {
+          const response = await axios.post("http://api:8000/login", credentials, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
