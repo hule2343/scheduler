@@ -20,6 +20,7 @@ export default function SlotList({ params }: { params: { groupId: string } }) {
   if (isLoading) return <div>loading...</div>;
 
   return (
+    <>
     <Table>
       <TableHead>
         <TableRow>
@@ -54,5 +55,7 @@ export default function SlotList({ params }: { params: { groupId: string } }) {
         })}
       </TableBody>
     </Table>
+    <Link href={`/${params.groupId}/slots/create`}>新規作成</Link>
+    </>
   );
 }

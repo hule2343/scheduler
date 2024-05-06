@@ -43,7 +43,7 @@ export default function SlotCreate({
         name: data.get("name"),
         start_time: new Date(data.get("start_time") as string).toISOString(),
         end_time: new Date(data.get("end_time") as string).toISOString(),
-        task_id: data.get("task_id"),
+        task_id: task_id,
       })
       .then((response) => {
         //mutate();
@@ -68,7 +68,6 @@ export default function SlotCreate({
           setData={setData}
         />
       </Box>
-      <div>{task_id}</div>
     </Container>
   );
 }

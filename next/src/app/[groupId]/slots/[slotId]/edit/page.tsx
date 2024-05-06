@@ -18,12 +18,17 @@ export default function SlotEdit({
     `/${params.groupId}/slots/${params.slotId}`,
     fetcher
   );
-  const [task_id, setData] = React.useState("None");
+  const [task_id, setData] = React.useState<string>();
   const {
     data: taskData,
     error: taskError,
     isLoading: taskIsLoading,
   } = useSWR<{ tasks: TaskResponse[] }>(`/${params.groupId}/tasks/`, fetcher);
+
+  React.useEffect(() => {
+    if (!data) return;
+    setData(data.task_id);
+  }, [data]);
   if (error | taskError) return <div>error</div>;
   if (isLoading || taskIsLoading) return <div>loading...</div>;
   if (!data || !taskData) return <div>no data</div>;
@@ -38,7 +43,7 @@ export default function SlotEdit({
         name: data.get("name"),
         start_time: new Date(data.get("start_time") as string).toISOString(),
         end_time: new Date(data.get("end_time") as string).toISOString(),
-        task_id: data.get("task_id"),
+        task_id: task_id,
       })
       .then((response) => {
         //mutate();
@@ -63,7 +68,6 @@ export default function SlotEdit({
           setData={setData}
         />
       </Box>
-      <div>{task_id}</div>
     </Container>
   );
 }

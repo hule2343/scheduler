@@ -34,15 +34,15 @@ def get(name: str, db: Session):
     return respone_slot
 
 
-def post(slot: SlotCreate, db: Session, user: User):
-    task = db.get(Task, slot.task_id)
+def post(request: SlotCreate, db: Session, user: User):
+    task = db.get(Task, request.task_id)
     if not task:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     new_slot = Slot(
-        name=slot.name,
-        start_time=datetime.datetime.fromisoformat(slot.start_time),
-        end_time=datetime.datetime.fromisoformat(slot.end_time),
-        task_id=slot.task_id,
+        name=request.name,
+        start_time=request.start_time,
+        end_time=request.end_time,
+        task_id=request.task_id,
         creater_id=user.id,
     )
     db.add(new_slot)
@@ -71,8 +71,8 @@ def patch(request: SlotCreate, slot_id: str, db: Session):
         )
         .execution_options(synchronize_session="evaluate")
     )
-    slot.start_time = datetime.datetime.fromisoformat(request.start_time)
-    slot.end_time = datetime.datetime.fromisoformat(request.end_time)
+    slot.start_time = request.start_time
+    slot.end_time = request.end_time
     slot.task = task
     db.commit()
     db.refresh(slot)
