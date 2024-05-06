@@ -4,9 +4,8 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session, joinedload
 
 from app.cruds.response import task_display, tasks_display
-from app.models.models import Task,User
+from app.models.models import Task, User
 from app.schemas.task import TaskCreate
-
 
 
 def all(db: Session):
@@ -46,19 +45,17 @@ def patch(request: TaskCreate, task_id: str, db: Session):
         .values(
             name=request.name if request.name else task.name,
             detail=request.detail if request.detail else task.detail,
-            max_woker_num=request.max_woker_num
-            if request.max_woker_num
+            max_worker_num=request.max_worker_num
+            if request.max_worker_num
             else task.max_worker_num,
-            min_woker_num=request.min_woker_num
-            if request.min_woker_num
+            min_worker_num=request.min_worker_num
+            if request.min_worker_num
             else task.min_worker_num,
-            exp_woker_num=request.exp_woker_num
-            if request.exp_woker_num
+            exp_worker_num=request.exp_worker_num
+            if request.exp_worker_num
             else task.exp_worker_num,
         )
         .execution_options(synchronize_session="evaluate")
     )
     db.commit()
     return task
-
-

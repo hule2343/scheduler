@@ -9,9 +9,9 @@ class TaskBase(BaseModel):
 
 
 class TaskCreate(TaskBase):
-    max_worker_num: int = Field(default=1, gt=1)
-    min_worker_num: int = Field(default=1, gt=0)
-    exp_worker_num: int = Field(default=0, gt=0)
+    max_worker_num: int = Field(default=1, gte=1)
+    min_worker_num: int = Field(default=1, gte=0)
+    exp_worker_num: int = Field(default=0, gte=0)
     point: int = Field(0, gt=0)
 
 

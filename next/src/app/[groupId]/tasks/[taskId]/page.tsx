@@ -1,3 +1,4 @@
+'use client'
 import { ResponseBase, SlotResponse, TaskResponse } from "@/types/ResponseType";
 import { fetcher } from "@/axios";
 import { Typography } from "@mui/material";
@@ -8,7 +9,7 @@ export default function TaskDetail({
   params: { groupId: string; taskId: string };
 }) {
   const { data, error, isLoading } = useSWR<TaskResponse>(
-    `/${params.groupId}/slots/${params.taskId}`,
+    `/${params.groupId}/tasks/${params.taskId}`,
     fetcher
   );
 

@@ -29,7 +29,7 @@ async def task_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(auth.get_current_active_user),
 ):
-    auth.check_privilege(group_id, current_user.id, "super")
+    auth.check_privilege(group_id, current_user.id, "super", db)
     task = Task(
         name=task.name,
         detail=task.detail,
@@ -46,6 +46,18 @@ async def task_post(
     return task_display(task)
 
 
+@router.get("/{task_id}", response_model=TaskDisplay)
+async def task_get_id(
+    group_id: str,
+    task_id: str,
+    user: User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    auth.check_privilege(group_id, user.id, "normal", db)
+    task = db.get(Task, task_id)
+    return task_display(task)
+
+
 @router.patch("/{task_id}", response_model=TaskDisplay)
 async def task_patch(
     group_id: str,
@@ -54,7 +66,7 @@ async def task_patch(
     user: User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    auth.check_privilege(group_id, user.id, "super")
+    auth.check_privilege(group_id, user.id, "super", db)
     task = crud.patch(task, task_id, db)
     return task_display(task)
 
@@ -66,7 +78,7 @@ async def task_delete(
     user: User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    auth.check_privilege(group_id, user.id, "super")
+    auth.check_privilege(group_id, user.id, "super", db)
     task = db.get(Task, task_id)
     db.delete(task)
     db.commit()

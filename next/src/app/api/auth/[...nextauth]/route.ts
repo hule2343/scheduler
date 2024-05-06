@@ -17,11 +17,15 @@ const authOption: AuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const response = await axios.post("http://api:8000/login", credentials, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
+          const response = await axios.post(
+            "http://api:8000/login",
+            credentials,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
           const data = response.data;
           if (data) return data;
         } catch (error) {
@@ -44,8 +48,12 @@ const authOption: AuthOptions = {
         token.accessToken = user.access_token;
         token.id = user.id;
         token.name = user.name;
+        token.expires = Date.now() + 60 * 60 * 1000;
       }
-      return token;
+      if (token.expires && token.expires > Date.now()) {
+        return token;
+      }
+      return { ...token, accessToken: null };
     },
     async session({ session, token, user }) {
       session.accessToken = token.accessToken;

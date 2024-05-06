@@ -7,7 +7,7 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) =>
-        token !== null && token.accessToken !== undefined,
+        token !== null && token.accessToken !== null,
     },
   }
 );
