@@ -24,7 +24,7 @@ const style = {
 };
 
 export default function MyPage() {
-  const { data: user } = useSWR<UserDetailResponse>("/users/me", fetcher);
+  const { data: user } = useSWR<UserDetailResponse>("/me", fetcher);
 
   return (
     <>
@@ -62,7 +62,7 @@ export default function MyPage() {
         </ListItem>
         <Divider component="li" />
         <ListItem>
-          {user?.create_tasks.map((task) => (
+          {user?.create_task.map((task) => (
             <Chip key={task.id} label={task.name} />
           ))}
         </ListItem>

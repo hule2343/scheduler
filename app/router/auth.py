@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
+from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.cruds.auth import (
@@ -11,9 +12,9 @@ from app.cruds.auth import (
     create_access_token,
     get_current_active_user,
 )
-from app.cruds.response import user_detail_display
+from app.cruds.response import tasks_display, user_detail_display
 from app.database import get_db
-from app.models.models import User
+from app.models.models import GroupUser, Task, User
 from app.schemas.users import UserUpdate
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -79,7 +80,25 @@ async def update_current_user(
 ):
     current_user.name = request.name
     current_user.room_number = request.room_number
-    current_user.exp_tasks = request.exp_task
+    exp_task = []
+    for task_id in request.exp_task:
+        task = db.get(Task, task_id)
+        exp_task.append(task)
+    current_user.exp_tasks = exp_task
     db.commit()
     db.refresh(current_user)
     return user_detail_display(current_user)
+
+
+@router.get("/tasks")
+async def get_user_tasks(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_active_user),
+):
+    group_user = db.scalars(
+        select(GroupUser).filter(GroupUser.user_id == user.id)
+    ).all()
+    tasks = []
+    for group in group_user:
+        tasks += group.group.tasks
+    return tasks_display(tasks)

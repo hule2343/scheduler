@@ -30,8 +30,8 @@ export type UserDetailResponse = ResponseBase & {
   groups: ResponseBase[];
   exp_tasks: ResponseBase[];
   slots: ResponseBase[];
-  create_slots: ResponseBase[];
-  create_tasks: ResponseBase[];
+  create_slot: ResponseBase[];
+  create_task: ResponseBase[];
   is_active: boolean;
   is_admin: boolean;
 };

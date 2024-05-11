@@ -11,31 +11,24 @@ import { useState } from "react";
 import axios, { fetcher } from "@/axios";
 import { MultiSelect } from "@/components/form/MultiSelect";
 import useSWR from "swr";
-import { UserDetailResponse } from "@/types/ResponseType";
+import { TaskResponse, UserDetailResponse } from "@/types/ResponseType";
 
 export default function ProfileEdit() {
   const [exp_task, setExpTask] = useState<string[]>([]);
-  const { data: user } = useSWR<UserDetailResponse>("/users/me", fetcher);
-
+  const { data: user } = useSWR<UserDetailResponse>("/me", fetcher);
+  const { data: tasks } = useSWR<TaskResponse[]>("/tasks", fetcher);
   React.useEffect(() => {
     if (!user) {
       return;
     }
     setExpTask(user.exp_tasks.map((task) => task.id));
-  }, []);
+  }, [user]);
+  if (!user || !tasks) {
+    return <div>loading...</div>;
+  }
 
-  const tasks = [
-    { id: "1", name: "test" },
-    { id: "2", name: "test" },
-    { id: "3", name: "test" },
-    { id: "4", name: "test" },
-    { id: "5", name: "test" },
-    { id: "6", name: "test" },
-    { id: "7", name: "test" },
-  ];
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log(exp_task);
     const data = new FormData(event.currentTarget);
     axios
       .patch("/me", {

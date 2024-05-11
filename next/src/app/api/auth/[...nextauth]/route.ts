@@ -55,10 +55,10 @@ const authOption: AuthOptions = {
       }
       return { ...token, accessToken: null };
     },
-    async session({ session, token, user }) {
+    async session({ session, token }) {
       session.accessToken = token.accessToken;
-      session.id = token.id;
-      session.name = token.name;
+      session.user.id = token.sub;
+      session.user.name = token.name;
       return session;
     },
   },
