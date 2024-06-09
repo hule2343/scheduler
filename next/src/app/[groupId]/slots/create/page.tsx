@@ -7,13 +7,15 @@ import axios, { fetcher } from "@/axios";
 import { SlotResponse, TasksResponse } from "@/types/ResponseType";
 import useSWR from "swr";
 import { SlotForm } from "@/components/form/SlotForm";
+import { useSnackbarContext } from "@/components/provider/SnackBar";
 
 export default function SlotCreate({
   params,
 }: {
-  params: { groupId: string; };
+  params: { groupId: string };
 }) {
   const [task_id, setData] = React.useState("");
+  const { showSnackbar } = useSnackbarContext();
   const {
     data: taskData,
     error: taskError,
@@ -21,7 +23,7 @@ export default function SlotCreate({
   } = useSWR<TasksResponse>(`/${params.groupId}/tasks/`, fetcher);
   if (taskError) return <div>error</div>;
   if (taskIsLoading) return <div>loading...</div>;
-  if ( !taskData) return <div>no data</div>;
+  if (!taskData) return <div>no data</div>;
 
   const slot_data = {
     id: "",
@@ -46,10 +48,10 @@ export default function SlotCreate({
         task_id: task_id,
       })
       .then((response) => {
-        //mutate();
+        showSnackbar("success", "作成しました");
       })
       .catch((err) => {
-        console.log(err);
+        showSnackbar("error", "作成に失敗しました");
       });
   };
 

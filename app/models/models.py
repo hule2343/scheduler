@@ -64,7 +64,7 @@ class Task(Base):
     )
     creater: Mapped[None | User] = relationship(back_populates="create_task")
     tasktemplates: Mapped[None | list[TaskTemplate]] = relationship(
-        back_populates="task"
+        back_populates="task",cascade="all,delete"
     )
     group_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("group.id", ondelete="CASCADE")
@@ -80,7 +80,7 @@ class TaskTemplate(Base):
     )
     template: Mapped[Template] = relationship(back_populates="tasktemplates")
     task_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("task.id", ondelete="SET NULL")
+        ForeignKey("task.id", ondelete="CASCADE")
     )
     task: Mapped[Task] = relationship(back_populates="tasktemplates")
     date_from_start: Mapped[int] = mapped_column(default=0)
@@ -96,7 +96,7 @@ class Template(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(20))
     tasktemplates: Mapped[list[TaskTemplate] | None] = relationship(
-        back_populates="template"
+        back_populates="template",cascade="all,delete"
     )
     group_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("group.id", ondelete="CASCADE")
@@ -112,10 +112,10 @@ class Group(Base):
         back_populates="group",
     )
     tasks: Mapped[None | list[Task]] = relationship(
-        back_populates="group",
+        back_populates="group",cascade="all,delete"
     )
     templates: Mapped[None | list[Template]] = relationship(
-        back_populates="group",
+        back_populates="group",cascade="all,delete"
     )
 
 
@@ -146,7 +146,7 @@ class User(Base):
     password: Mapped[str] = mapped_column(String(400))
     room_number: Mapped[str] = mapped_column(String(10))
     groups: Mapped[None | list[GroupUser]] = relationship(
-        back_populates="user", cascade="all"
+        back_populates="user", cascade="all,delete"
     )
     exp_tasks: Mapped[None | list[Task]] = relationship(
         secondary=experience_table, back_populates="experts"

@@ -32,6 +32,7 @@ export default function SlotEdit({
   if (error | taskError) return <div>error</div>;
   if (isLoading || taskIsLoading) return <div>loading...</div>;
   if (!data || !taskData) return <div>no data</div>;
+  if(!task_id) return <div>no task_id</div>;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

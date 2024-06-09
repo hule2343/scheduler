@@ -13,7 +13,7 @@ import { SlotResponse } from "@/types/ResponseType";
 import { useSession } from "next-auth/react";
 
 export default function GroupHome({ params }: { params: { groupId: string } }) {
-  const { data, error, isLoading } = useSWR<{ slots: SlotResponse[] }>(
+  const { data, error,mutate,isLoading } = useSWR<{ slots: SlotResponse[] }>(
     `/${params.groupId}/slots`,
     fetcher
   );
@@ -51,7 +51,7 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
                 .includes(session.data.user.id)
           )
           .map((slot, index) => (
-            <SlotDisplayCardAssign slot={slot} key={index} />
+            <SlotDisplayCardAssign slot={slot} key={index} mutate={mutate} />
           ))}
       </ScrollMenu>
       <h2>募集中のシフト</h2>
@@ -76,7 +76,7 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
                 slot.assignees
                   .map((assignee) => assignee.id)
                   .includes(session.data.user.id) ? (
-                  <SlotDisplayCardAssign slot={slot} key={index} />
+                  <SlotDisplayCardAssign slot={slot} key={index} mutate={mutate} />
                 ) : (
                   <SlotDisplayCardUnassign slot={slot} key={index} />
                 )

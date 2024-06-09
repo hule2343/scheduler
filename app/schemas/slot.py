@@ -55,3 +55,8 @@ class SlotDelete(BaseModel):
 
     class Config:
         from_attributes = True
+
+class SlotComplete(BaseModel):
+    done: bool
+    class Config:
+        from_attributes = True

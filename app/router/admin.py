@@ -90,7 +90,7 @@ async def create_group(
     db.add(group)
     db.commit()
     db.refresh(group)
-    return group
+    return response_base(group)
 
 
 @router.get("/groups/{group_id}")

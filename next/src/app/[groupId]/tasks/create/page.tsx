@@ -3,7 +3,9 @@ import axios from "@/axios";
 import { Container, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import { TaskForm } from "@/components/form/TaskForm";
+import { useSnackbarContext } from "@/components/provider/SnackBar";
 export default function TaskCreateForm({ params }: { params: { groupId: string } }) {
+    const { showSnackbar } = useSnackbarContext();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -17,10 +19,10 @@ export default function TaskCreateForm({ params }: { params: { groupId: string }
             point: data.get("point")
         })
             .then((response) => {
-
+                showSnackbar('success',"作成しました");                
             })
             .catch((err) => {
-                console.log(err);
+                showSnackbar('error',"作成に失敗しました");
             });
     };
 

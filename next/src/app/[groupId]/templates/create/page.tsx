@@ -1,5 +1,5 @@
 "use client";
-import { fetcher } from "@/axios";
+import axios, { fetcher } from "@/axios";
 import useSWR from "swr";
 import {
   TasksResponse,
@@ -20,7 +20,6 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
-import axios from "axios";
 import { TemplateAddTaskFields } from "@/components/form/TemplateAddFields";
 export default function TemplateCreate({
   params,
@@ -34,9 +33,8 @@ export default function TemplateCreate({
   } = useSWR<TasksResponse>(`/${params.groupId}/tasks/`, fetcher);
   const [data, setTasks] = React.useState<TemplateTask[]>([]);
   const [name, setName] = React.useState("");
-  const [task_id, setTaskId] = React.useState("");
-  const [formData, setTemplateTask] = React.useState<
-  TemplateTaskResponse | undefined
+  const [stateField, setTemplateTask] = React.useState<
+    TemplateTaskResponse | undefined
   >({
     id: "",
     date_from_start: 0,
@@ -45,11 +43,11 @@ export default function TemplateCreate({
     task_id: "",
     name: "",
   });
-  
+
   if (taskError) return <div>error</div>;
   if (taskIsLoading) return <div>loading...</div>;
   if (!taskData) return <div>no data</div>;
- 
+
   const handleTaskRemove = (slot: TemplateTask) => {
     setTasks(data.filter((s) => s !== slot));
   };
@@ -57,6 +55,8 @@ export default function TemplateCreate({
   const handleTaskAdd = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form_data = new FormData(event.currentTarget);
+    if (!stateField) return;
+    const task_id = stateField.task_id;
     const task = {
       id: task_id,
       name: taskData.tasks.find((task) => task.id === task_id)?.name as string,
@@ -66,9 +66,12 @@ export default function TemplateCreate({
     };
     setTasks([...data, task]);
   };
+
   const handleSubmit = () => {
+    console.log(data);
+
     axios
-      .post(`/${params.groupId}/templates`, {
+      .post(`${params.groupId}/templates`, {
         name: name,
         tasks: data.map((task) => {
           return {
@@ -80,7 +83,9 @@ export default function TemplateCreate({
         }),
       })
       .then((response) => {})
-      .catch((err) => {});
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return (
@@ -105,9 +110,9 @@ export default function TemplateCreate({
         sx={{ mt: 3 }}
         maxWidth={500}
       >
-        {formData && (
+        {stateField && (
           <TemplateAddTaskFields
-            templateTask={formData}
+            templateTask={stateField}
             buttonLabel="追加"
             tasks={taskData.tasks.map((task) => {
               return { id: task.id, name: task.name };
@@ -115,7 +120,7 @@ export default function TemplateCreate({
             setTemplateTask={setTemplateTask}
           />
         )}{" "}
-        <Button fullWidth variant="contained" onClick={() => handleSubmit}>
+        <Button fullWidth variant="contained" onClick={handleSubmit}>
           作成
         </Button>
       </Box>

@@ -87,7 +87,7 @@ def assign(slot_id: str, user_id: str, db: Session):
     if slot.end_time < datetime.datetime.now():
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    exp_assignees = filter(lambda x: slot.task in x.exp_tasks, slot.assignees)
+    exp_assignees = list(filter(lambda x: slot.task in x.exp_tasks, slot.assignees))
     if len(slot.assignees) + 1 > slot.task.max_worker_num:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     if (slot.task not in user.exp_tasks) and slot.task.max_worker_num - len(
@@ -98,6 +98,106 @@ def assign(slot_id: str, user_id: str, db: Session):
     db.commit()
     db.refresh(slot)
     return slot
+
+
+"""未テスト 動くかわからない"""
+
+
+def auto_assign(group_id: str, slots: list[Slot], db: Session):
+    group_user = db.scalars(
+        select(GroupUser).filter(GroupUser.group_id == group_id, GroupUser.point < 200)
+    ).all()
+    group_user_que = [[] for _ in range(250)]
+    for user in group_user:
+        group_user_que[user.point].append(user)
+
+    target_point = 0
+    for slot in slots:
+        current_exp_worker = 0
+        while current_exp_worker < slot.task.exp_worker_num:
+            if target_point >= 200:
+                break
+            if group_user_que[target_point] == []:
+                target_point += 1
+                continue
+            exp_worker = list(
+                filter(
+                    lambda user: user.user.has_exp(slot.task),
+                    group_user_que[target_point],
+                )
+            )
+            if slot.task.exp_worker_num - current_exp_worker > len(exp_worker):
+                slot.assignees += exp_worker
+                current_exp_worker += len(exp_worker)
+                target_point += 1
+                group_user_que[target_point] = list(
+                    set(group_user_que[target_point]) - set(exp_worker)
+                )
+                group_user_que[target_point + slot.task.point] += exp_worker
+                continue
+            else:
+                slot.assignees += exp_worker[
+                    : slot.task.exp_worker_num - current_exp_worker
+                ]
+                current_exp_worker += len(
+                    exp_worker[: slot.task.exp_worker_num - current_exp_worker]
+                )
+                group_user_que[target_point] = list(
+                    set(group_user_que[target_point])
+                    - set(exp_worker[: slot.task.exp_worker_num - current_exp_worker])
+                )
+                group_user_que[target_point + slot.task.point] += exp_worker[
+                    : slot.task.exp_worker_num - current_exp_worker
+                ]
+                break
+
+    target_point = 0
+    for slot in slots:
+        current_worker = 0
+        while current_worker < slot.task.max_worker_num - slot.task.exp_worker_num:
+            if target_point >= 200:
+                break
+            if group_user_que[target_point] == []:
+                target_point += 1
+                continue
+            if (
+                slot.task.max_worker_num - slot.task.exp_worker_num - current_worker
+                > len(group_user_que[target_point])
+            ):
+                slot.assignees += group_user_que[target_point]
+                current_worker += len(group_user_que[target_point])
+                target_point += 1
+                group_user_que[target_point] = []
+                group_user_que[target_point + slot.task.point] += group_user_que[
+                    target_point
+                ]
+                continue
+            else:
+                slot.assignees += group_user_que[target_point][
+                    : slot.task.exp_worker_num - current_exp_worker
+                ]
+                current_worker += len(
+                    group_user_que[target_point][
+                        : slot.task.max_worker_num
+                        - slot.task.exp_worker_num
+                        - current_worker
+                    ]
+                )
+                group_user_que[target_point] = group_user_que[target_point][
+                    slot.task.max_worker_num
+                    - slot.task.exp_worker_num
+                    - current_worker :
+                ]
+                group_user_que[target_point + slot.task.point] += group_user_que[
+                    target_point
+                ][
+                    : slot.task.max_worker_num
+                    - slot.task.exp_worker_num
+                    - current_worker
+                ]
+                break
+    db.commit()
+    return slots
 
 
 def complete(group_id, slot_id: str, done: bool, user: User, db: Session):
@@ -117,8 +217,9 @@ def complete(group_id, slot_id: str, done: bool, user: User, db: Session):
 
     slot.assignees.remove(user)
     if done:
-        user.exp_tasks.append(slot.task)
         group_user.point += slot.task.point
+        if slot.task not in user.exp_tasks:
+            user.exp_tasks.append(slot.task)
     db.commit()
     db.refresh(slot)
     return slot

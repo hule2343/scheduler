@@ -66,11 +66,10 @@ class MyTestClient(TestClient):
             backend_options,
             cookies,
         )
-        response = create_admin(
+        _ = create_admin(
             admin_user["name"], admin_user["password"], admin_user["room_number"]
         )
-        self.user = response
-        self.access_token = (
+        session_info = (
             super()
             .post(
                 "/login",
@@ -80,9 +79,9 @@ class MyTestClient(TestClient):
                 },
             )
             .json()
-            .get("access_token")
         )
-        
+        self.access_token = session_info.get("access_token")
+        self.user = session_info
         
 
     def get(
