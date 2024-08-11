@@ -1,7 +1,7 @@
 import pytest
 from conftest import test_client
 from fastapi.testclient import TestClient
-from app.models.models import Slot, User
+
 
 
 def test_all(test_client: TestClient):
@@ -52,22 +52,73 @@ def test_all(test_client: TestClient):
     )
     assert addusers.status_code == 200
     assert addusers.json().get("users")[0].get("name") == "testUser2"
-    assert addusers.json().get("users")[0].get("role") == "super"
     assert addusers.json().get("users")[1].get("name") == "testUser3"
-    assert addusers.json().get("users")[1].get("role") == "super"
     assert addusers.json().get("users")[2].get("name") == test_client.user.get("name")
-    assert addusers.json().get("users")[2].get("role") == "super"
 
+    postrole = test_client.post(
+        group_id + "/roles",
+        json={
+            "name": "管理者",
+            "permissions": [
+                "add_user",
+                "remove_user",
+                "edit_task",
+                "edit_template",
+                "change_user_role",
+                "edit_slot",
+                "add_slot_from_template",
+                "edit_point",
+                "edit_role",
+            ],
+        },
+        headers={"Authorization": f"Bearer {test_client.user.get('access_token')}"},
+    )
+    assert postrole.status_code == 200
+    assert postrole.json().get("name") == "管理者"
+    assert set(postrole.json().get("permissions")) == set([
+        "add_user",
+        "remove_user",
+        "edit_task",
+        "edit_template",
+        "change_user_role",
+        "edit_slot",
+        "add_slot_from_template",
+        "edit_point",
+        "edit_role",
+    ])
+
+    postrole2 = test_client.post(
+        group_id + "/roles",
+        json={
+            "name": "一般",
+            "permissions": [
+                "add_user",
+                "edit_task",
+                "add_slot_from_template",
+            ],
+        },
+        headers={"Authorization": f"Bearer {test_client.user.get('access_token')}"},
+    )
+    assert postrole2.status_code == 200
+    assert postrole2.json().get("name") == "一般"
+    assert postrole2.json().get("permissions") == [
+        "add_user",
+        "edit_task",
+        "add_slot_from_template",
+    ]
+    
 
     role_change = test_client.patch(
         group_id + "/users/" + user3.json().get("id") + "/role",
         headers={"Authorization": f"Bearer {test_client.user.get('access_token')}"},
         json={
-            "role": "normal",
+            "role_ids": [postrole.json().get("id"), postrole2.json().get("id")],
         },
     )
     assert role_change.status_code == 200
-    assert role_change.json().get("role") == "normal"
+    assert role_change.json().get("role")[1].get("name") == "一般"
+    assert role_change.json().get("role")[0].get("name") == "管理者"
+    
     user3_Login = test_client.post(
         "/login",
         data={
@@ -92,9 +143,10 @@ def test_all(test_client: TestClient):
             "min_worker_num": 1,
             "exp_worker_num": 0,
             "point": 1,
+            "duration": "P30Y",
         },
     )
-    add_task2= test_client.post(
+    add_task2 = test_client.post(
         group_id + "/tasks",
         json={
             "name": "testTask2",
@@ -103,7 +155,8 @@ def test_all(test_client: TestClient):
             "min_worker_num": 1,
             "exp_worker_num": 1,
             "point": 1,
-        },  
+            "duration": 3600,
+        },
     )
     assert add_task.status_code == 200
     assert add_task.json().get("name") == "testTask"
@@ -112,6 +165,11 @@ def test_all(test_client: TestClient):
     assert add_task.json().get("min_worker_num") == 1
     assert add_task.json().get("exp_worker_num") == 0
     assert add_task.json().get("point") == 1
+    assert add_task.json().get("duration") == "P30Y"
+    assert add_task2.status_code == 200
+    assert add_task2.json().get("name") == "testTask2"
+    assert add_task2.json().get("duration") == "PT1H"
+    
     assert add_task.json().get("group_id") == group_id
     add_task_Faliure = test_client.post(
         group_id + "/tasks",
@@ -123,15 +181,15 @@ def test_all(test_client: TestClient):
             "min_worker_num": 1,
             "exp_worker_num": 1,
             "point": 1,
+            "duration": "P1Y9M15DT1H30M0S",
         },
     )
-    assert add_task_Faliure.status_code == 403
+    assert add_task_Faliure.status_code == 200
     add_slot = test_client.post(
         group_id + "/slots",
         json={
             "name": "testSlot",
             "start_time": "2021-01-01T00:00:00",
-            "end_time": "2030-01-01T01:00:00",
             "task_id": add_task.json().get("id"),
         },
     )
@@ -140,7 +198,6 @@ def test_all(test_client: TestClient):
         json={
             "name": "testSlot2",
             "start_time": "2021-01-01T00:00:00",
-            "end_time": "2030-01-01T01:00:00",
             "task_id": add_task2.json().get("id"),
         },
     )
@@ -148,7 +205,7 @@ def test_all(test_client: TestClient):
     assert add_slot.status_code == 200
     assert add_slot.json().get("name") == "testSlot"
     assert add_slot.json().get("start_time") == "2021-01-01T00:00:00"
-    assert add_slot.json().get("end_time") == "2030-01-01T01:00:00"
+    assert add_slot.json().get("end_time") == "2050-12-25T00:00:00"
     assert add_slot.json().get("task_id") == add_task.json().get("id")
     assert add_slot.json().get("creater_id") == test_client.user.get("id")
     add_slot_Faliure = test_client.post(
@@ -157,7 +214,6 @@ def test_all(test_client: TestClient):
         json={
             "name": "testSlot",
             "start_time": "2021-01-01T00:00:00",
-            "end_time": "2021-01-01T01:00:00",
             "task_id": add_task.json().get("id"),
         },
     )
@@ -171,7 +227,7 @@ def test_all(test_client: TestClient):
         headers={"Authorization": f"Bearer {user_4_Login.json().get('access_token')}"},
     )
     assert assign_slot_Failure.status_code == 403
-    assign_slot_Failure2= test_client.post(
+    assign_slot_Failure2 = test_client.post(
         group_id + "/slots/" + add_slot2.json().get("id") + "/assign",
         headers={"Authorization": f"Bearer {user_4_Login.json().get('access_token')}"},
     )
@@ -181,18 +237,20 @@ def test_all(test_client: TestClient):
     )
     assert cancel_slot.status_code == 200
     assert cancel_slot.json().get("assignees") == []
-    assign_slot= test_client.post(
+    assign_slot = test_client.post(
         group_id + "/slots/" + add_slot.json().get("id") + "/assign",
     )
     assert assign_slot.status_code == 200
-    complete_slot= test_client.post(
+    complete_slot = test_client.post(
         group_id + "/slots/" + add_slot.json().get("id") + "/complete",
+        json={"done": True},
     )
     assert complete_slot.status_code == 200
     assert complete_slot.json().get("assignees") == []
-    complete_user= test_client.get(
+    complete_user = test_client.get(
         "/me",
     )
     assert complete_user.status_code == 200
-    assert complete_user.json().get("exp_tasks")[0].get("id") == add_task.json().get("id")
-    
+    assert complete_user.json().get("exp_tasks")[0].get("id") == add_task.json().get(
+        "id"
+    )

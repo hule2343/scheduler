@@ -1,4 +1,4 @@
-from app.models.models import GroupUser, Slot, Task, TaskTemplate, Template, User
+from app.models.models import GroupUser, Role, Slot, Task, TaskTemplate, Template, User
 
 
 def response_base(model):
@@ -43,8 +43,10 @@ def slot_display(slot: Slot):
         "task_name": slot.task.name,
     }
 
+
 def slots_display(slots: Slot):
     return [slot_display(slot) for slot in slots]
+
 
 def task_display(task: Task):
     return {
@@ -55,10 +57,12 @@ def task_display(task: Task):
         "min_worker_num": task.min_worker_num,
         "exp_worker_num": task.exp_worker_num,
         "point": task.point,
+        "duration": task.duration,
         "creater_id": task.creater_id,
         "creater_name": task.creater.name,
         "group_id": task.group_id,
     }
+
 
 def tasks_display(tasks: Task):
     return [task_display(task) for task in tasks]
@@ -76,7 +80,7 @@ def template_display(template: Template):
 def tasktemplate_display(tasktemplate: TaskTemplate):
     return {
         "id": tasktemplate.id,
-        "name": tasktemplate.slot_name(),
+        "name": tasktemplate.name,
         "task_id": tasktemplate.task_id,
         "date_from_start": tasktemplate.date_from_start,
         "start_time": tasktemplate.start_time,
@@ -90,6 +94,31 @@ def group_user_display(user: GroupUser):
         "name": user.user.name,
         "room_number": user.user.room_number,
         "point": user.point,
-        "role": user.role,
+        "role": [response_base(role) for role in user.roles],
         "is_active": user.user.is_active,
+    }
+
+
+permissions = [
+    "add_user",
+    "remove_user",
+    "edit_task",
+    "edit_template",
+    "edit_role",
+    "change_user_role",
+    "edit_slot",
+    "add_slot_from_template",
+    "edit_point",
+]
+
+
+def role_display(role: Role):
+    return {
+        "id": role.id,
+        "name": role.name,
+        "permissions": [
+            permission
+            for permission in permissions
+            if getattr(role, permission, None)
+        ],
     }
