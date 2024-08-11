@@ -1,22 +1,23 @@
 from datetime import timedelta
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
+from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
-import app.cruds.user as crud
 from app.cruds.auth import (
     authenticate_user,
     create_access_token,
     get_current_active_user,
 )
-from app.cruds.response import user_detail_display, user_display
+from app.cruds.response import tasks_display, user_detail_display
 from app.database import get_db
-from app.models.models import User
-from app.schemas.users import AdminUserCreate, AdminUserDisplay, UserUpdate
+from app.models.models import GroupUser, Task, User
+from app.schemas.users import UserUpdate
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 router = APIRouter()
@@ -25,11 +26,11 @@ router = APIRouter()
 class Token(BaseModel):
     access_token: str
     token_type: str
-    id:UUID
-    name:str
+    id: UUID
+    name: str
 
 
-'''
+"""
 @router.post("/register", response_model=AdminUserDisplay)
 async def user_register(user: AdminUserCreate, db: Session = Depends(get_db)):
     generated_user = crud.create_admin(user, db)
@@ -39,7 +40,8 @@ async def user_register(user: AdminUserCreate, db: Session = Depends(get_db)):
         )
 
     return user_display(generated_user)
-'''
+"""
+
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
@@ -78,7 +80,25 @@ async def update_current_user(
 ):
     current_user.name = request.name
     current_user.room_number = request.room_number
-    current_user.exp_tasks = request.exp_task
+    exp_task = []
+    for task_id in request.exp_task:
+        task = db.get(Task, task_id)
+        exp_task.append(task)
+    current_user.exp_tasks = exp_task
     db.commit()
     db.refresh(current_user)
     return user_detail_display(current_user)
+
+
+@router.get("/tasks")
+async def get_user_tasks(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_active_user),
+):
+    group_user = db.scalars(
+        select(GroupUser).filter(GroupUser.user_id == user.id)
+    ).all()
+    tasks = []
+    for group in group_user:
+        tasks += group.group.tasks
+    return tasks_display(tasks)

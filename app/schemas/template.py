@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-
+import datetime
 
 
 
@@ -14,20 +14,13 @@ class TemplateDate(BaseModel):
         from_attributes = True
 
 
-class TemplateTime(BaseModel):
-    hour: int = Field(ge=0, le=23)
-    minute: int = Field(ge=0, le=59)
-
-    class Config:
-        from_attributes = True
-
 
 class TemplateSlot(BaseModel):
     id: UUID
     name: str
     date_from_start: int
-    start_time: TemplateTime
-    end_time: TemplateTime
+    start_time: datetime.time
+    end_time: datetime.time
 
     class Config:
         from_attributes = True
@@ -50,8 +43,8 @@ class TemplateList(BaseModel):
 class TemplateTaskBase(BaseModel):
     id: UUID
     date_from_start: int
-    start_time: TemplateTime
-    end_time: TemplateTime
+    start_time: datetime.time
+    end_time: datetime.time
 
     def __hash__(self):
         return hash(

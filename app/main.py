@@ -11,8 +11,9 @@ from app.router import (
     task,
     template,
     user,
+    groups,
 )
-
+from app.database import DATABASE
 app = FastAPI()
 
 
@@ -22,7 +23,7 @@ async def handler(request: Request, exc: RequestValidationError):
     return JSONResponse(content={}, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
-origins = ["http://localhost:3000", "http://localhost:5432"]
+origins = ["http://next:3000", DATABASE, "http://localhost:3000", "http://localhost:5432"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,10 +39,11 @@ async def root():
     return {"message": "Hello World"}
 
 
+app.include_router(auth.router, prefix="")
 app.include_router(admin.router, prefix="/admin")
+app.include_router(groups.router, prefix="/groups")
 app.include_router(slot.router, prefix="/{group_id}/slots")
 app.include_router(task.router, prefix="/{group_id}/tasks")
 app.include_router(template.router, prefix="/{group_id}/templates")
 app.include_router(user.router, prefix="/{group_id}/users")
-app.include_router(auth.router, prefix="")
 app.include_router(message.router, prefix="/{group_id}/message")

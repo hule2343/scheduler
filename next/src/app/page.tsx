@@ -2,6 +2,7 @@
 import { GroupResponse } from "@/types/ResponseType";
 import {
   Container,
+  Divider,
   List,
   ListItem,
   ListItemButton,
@@ -28,7 +29,7 @@ const GroupList = () => {
     groups: GroupResponse[];
   }>("/groups", fetcher);
   const router = useRouter();
-  if (error) router.push("api/auth/signin");
+  if (error) return <div>Error</div>;
   if (isLoading) return <div>Loading...</div>;
   const joined_groups = data?.groups.filter(
     (group) => group.role == "normal" || group.role == "super"
@@ -49,6 +50,7 @@ const GroupList = () => {
   return (
     <>
       <Container>
+        <Divider>参加中のグループ</Divider>
         <List>
           {joined_groups?.map((group) => (
             <ListItem key={group.id}>
@@ -65,6 +67,7 @@ const GroupList = () => {
         </List>
       </Container>
       <Container>
+        <Divider>承認待ちのグループ</Divider>
         <List>
           {pending_groups?.map((group) => (
             <ListItem key={group.id}>
@@ -74,6 +77,7 @@ const GroupList = () => {
         </List>
       </Container>
       <Container>
+        <Divider>参加可能なグループ</Divider>
         <List>
           {irrelevant_groups?.map((group) => (
             <ListItem key={group.id}>

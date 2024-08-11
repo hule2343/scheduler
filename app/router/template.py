@@ -34,7 +34,7 @@ async def template_post(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal")
+    check_privilege(group_id, user.id, "edit_template",db)
     template = crud.post(group_id, request, db)
     return template_display(template)
 
@@ -54,7 +54,7 @@ async def template_delete(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal")
+    check_privilege(group_id, user.id, "edit_template",db)
     template = db.get(Template, template_id)
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -71,7 +71,7 @@ async def template_patch(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal")
+    check_privilege(group_id, user.id, "edit_template",db)
     template = db.get(Template, template_id)
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -89,7 +89,7 @@ async def generate_slots_from_template(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal")
+    check_privilege(group_id, user.id, "add_slot_from_template",db)
     template = db.get(Template, template_id)
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -108,7 +108,7 @@ async def tasktemplate_add(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal")
+    check_privilege(group_id, user.id, "edit_template",db)
     template = db.get(Template, template_id)
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -140,7 +140,7 @@ async def tasktemplate_delete(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal")
+    check_privilege(group_id, user.id, "edit_template",db)
     template = db.get(Template, template_id)
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -162,7 +162,7 @@ async def tasktemplate_edit(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal")
+    check_privilege(group_id, user.id, "edit_template",db)
     tasktemplate = db.get(TaskTemplate, tasktemplate_id)
     tasktemplate.date_from_start = request.date_from_start
     tasktemplate.start_time = datetime.time(

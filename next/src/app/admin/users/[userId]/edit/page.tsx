@@ -33,7 +33,7 @@ export default function AdminUserEdit({
       .patch(`/admin/users/${params.userId}`, {
         name: data.get("name"),
         room_number: data.get("room_number"),
-        is_active: data.get("is_active") ? true : false,
+        is_active: data.get("is_active") ? false : true,
         is_admin: data.get("is_admin") ? true : false,
       })
       .then((response) => {})
@@ -85,7 +85,7 @@ export default function AdminUserEdit({
                   <Checkbox
                     id="is_active"
                     name="is_active"
-                    defaultChecked={data.is_active}
+                    defaultChecked={!data.is_active}
                     inputProps={{ "aria-label": "controlled" }}
                   />
                 }

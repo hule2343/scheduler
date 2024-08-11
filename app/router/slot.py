@@ -9,7 +9,7 @@ from app.cruds.auth import check_privilege, get_current_active_user
 from app.cruds.response import slot_display
 from app.database import get_db
 from app.models.models import Slot, Task, User
-from app.schemas.slot import SlotCreate, SlotDelete, SlotDisplay, SlotList
+from app.schemas.slot import SlotComplete, SlotCreate, SlotDelete, SlotDisplay, SlotList
 
 router = APIRouter()
 
@@ -43,7 +43,7 @@ async def slot_post(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "normal", db)
+    check_privilege(group_id, user.id, "edit_slot", db)
     slot = crud.post(request, db, user)
     return slot_display(slot)
 
@@ -56,7 +56,7 @@ async def slots_delete(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal", db)
+    check_privilege(group_id, user.id, "edit_slot", db)
     if expired:
         expired_slots = crud.delete_expired_slots(group_id, db)
         return expired_slots
@@ -86,9 +86,25 @@ async def slot_patch(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal", db)
+    check_privilege(group_id, user.id, "edit_slot", db)
     slot = crud.patch(request, slot_id, db)
     return slot_display(slot)
+
+
+@router.delete("/{slot_id}")
+async def slot_delete(
+    group_id: str,
+    slot_id: str,
+    user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    check_privilege(group_id, user.id, "edit_slot", db)
+    slot = db.get(Slot, slot_id)
+    if not slot:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    db.delete(slot)
+    db.commit()
+    return {"id": slot.id, "name": slot.name}
 
 
 @router.post("/{slot_id}/cancel", response_model=SlotDisplay)
@@ -127,10 +143,10 @@ async def slot_assign(
 async def slot_complete(
     group_id: str,
     slot_id: str,
-    done: bool = True,
+    request: SlotComplete,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     check_privilege(group_id, user.id, "normal", db)
-    slot = crud.complete(group_id, slot_id, done, user, db)
+    slot = crud.complete(group_id, slot_id, request.done, user, db)
     return slot_display(slot)

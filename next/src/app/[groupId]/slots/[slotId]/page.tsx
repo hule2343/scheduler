@@ -1,4 +1,5 @@
-import { ResponseBase, SlotResponse } from "@/types/ResponseType";
+"use client";
+import { SlotResponse } from "@/types/ResponseType";
 import useSWR from "swr";
 import { fetcher } from "@/axios";
 import { Typography } from "@mui/material";

@@ -1,7 +1,6 @@
-
 services:
   next:
-    build: 
+    build:
       context: ./
       dockerfile: ./docker/next/Dockerfile
     container_name: scheduler-front
@@ -11,7 +10,7 @@ services:
       - db
     tty: true
     environment:
-      - NODE_ENV=DEVELOPMENT
+      - NODE_ENV=development
     volumes:
       - node_modules:/usr/src/next/node_modules
       - ./next:/usr/src/next
@@ -21,7 +20,7 @@ services:
     networks:
       - scheduler-front
     working_dir: /usr/src/scripts
-    command: ["sh","./run_next.sh"]
+    command: ["sh", "./run_next.sh"]
   api:
     image: "fastapi_starter"
     container_name: "fastapi_starter"
@@ -35,6 +34,7 @@ services:
       - "8888:8000"
     networks:
       - scheduler-front
+      - scheduler-back
     volumes:
       - ./app:/usr/src/app/app:cached
       - ./db:/usr/src/app/db:cached
@@ -45,7 +45,7 @@ services:
       APP_ENV: "development"
       TZ: "Asia/Tokyo"
     env_file:
-      - .env.development
+      - .env.dev
   db:
     image: "fastapi_db"
     container_name: "fastapi_db"
@@ -56,13 +56,15 @@ services:
     tty: true
     ports:
       - 5432:5432
+    networks:
+      - scheduler-back
     volumes:
       - postgres_volume:/var/lib/postgresql/data
     environment:
       APP_ENV: "development"
       TZ: "Asia/Tokyo"
     env_file:
-      - .env.development
+      - .env.dev
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
       interval: 10s
@@ -76,5 +78,9 @@ volumes:
 networks:
   scheduler-front:
     name: scheduler-front
+    driver: bridge
+    external: true
+  scheduler-back:
+    name: scheduler-back
     driver: bridge
     external: true

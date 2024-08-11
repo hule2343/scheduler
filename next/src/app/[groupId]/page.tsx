@@ -13,19 +13,24 @@ import { SlotResponse } from "@/types/ResponseType";
 import { useSession } from "next-auth/react";
 
 export default function GroupHome({ params }: { params: { groupId: string } }) {
-  const { data, error, isLoading, mutate } = useSWR<{ slots: SlotResponse[] }>(
+  const { data, error,mutate,isLoading } = useSWR<{ slots: SlotResponse[] }>(
     `/${params.groupId}/slots`,
     fetcher
   );
   const session = useSession();
   if (error || session.status === "unauthenticated")
     return <div>Loading Failed</div>;
-  if (!data || session.data===undefined) return <div>loading...</div>;
+  if (!data || !session.data || session.data.user === undefined)
+    return <div>loading...</div>;
   if (isLoading) return <div>loading...</div>;
+
+  const futureSlots = data.slots.filter(
+    (slot) => new Date(slot.end_time).getTime() > new Date().getTime()
+  );
 
   const days = Array.from(
     new Set(
-      data.slots.map((slot) =>
+      futureSlots.map((slot) =>
         new Date(slot.start_time).toLocaleDateString("ja-JP", {
           month: "2-digit",
           day: "numeric",
@@ -35,7 +40,7 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
   ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   return (
     <>
-      <h2>あなたのシフト</h2>
+      <h2>入る予定のシフト</h2>
       <ScrollMenu>
         {data.slots
           .filter(
@@ -43,16 +48,16 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
               new Date(slot.end_time).getTime() > new Date().getTime() &&
               slot.assignees
                 .map((assignee) => assignee.id)
-                .includes(session.data.id)
+                .includes(session.data.user.id)
           )
           .map((slot, index) => (
-            <SlotDisplayCardAssign slot={slot} key={index} />
+            <SlotDisplayCardAssign slot={slot} key={index} mutate={mutate} />
           ))}
       </ScrollMenu>
       <h2>募集中のシフト</h2>
       <ScrollMenu>
         {days.map((day, index) => {
-          const slots = data.slots
+          const slots = futureSlots
             .filter(
               (slot) =>
                 new Date(slot.start_time).toLocaleDateString("ja-JP", {
@@ -70,8 +75,8 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
               {slots.map((slot, index) =>
                 slot.assignees
                   .map((assignee) => assignee.id)
-                  .includes(session.data.id) ? (
-                  <SlotDisplayCardAssign slot={slot} key={index} />
+                  .includes(session.data.user.id) ? (
+                  <SlotDisplayCardAssign slot={slot} key={index} mutate={mutate} />
                 ) : (
                   <SlotDisplayCardUnassign slot={slot} key={index} />
                 )
@@ -80,7 +85,7 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
           );
         })}
       </ScrollMenu>
-      <h2>終了したシフト</h2>
+      <h2>過去に入ったシフト</h2>
       <ScrollMenu>
         {data.slots
           .filter(
@@ -88,7 +93,7 @@ export default function GroupHome({ params }: { params: { groupId: string } }) {
               new Date(slot.end_time).getTime() < new Date().getTime() &&
               slot.assignees
                 .map((assignee) => assignee.id)
-                .includes(session.data.id)
+                .includes(session.data.user.id)
           )
           .sort(
             (a, b) =>

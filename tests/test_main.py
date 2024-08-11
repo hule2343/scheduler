@@ -1,170 +1,198 @@
-from fastapi.testclient import TestClient
-from app.main import app
-from app.models.models import Authority
-from app.models.models import TaskTag
-from app.models.models import Slot
-from app.models.models import User
-from app.cruds.user import register, get
-from conftest import test_client
 import pytest
+from conftest import test_client
+from fastapi.testclient import TestClient
+from app.models.models import Slot, User
 
 
-def test_add_task(test_client):
-    task = {
-        "name": "testTask",
-        "detail": "This is the task json for testing (これはテスト用のTaskオブジェクトです)",
-        "authority": [],
-        "tag": [],
-    }
-    response = test_client.post("/tasks/", json=task)
-    assert response.status_code == 200
-
-
-def test_add_slot(test_client):
-    task = test_client.get("/tasks/?name=testTask").json()
-    slot = {
-        "name": "testslot",
-        "start_time": {
-            "year": 2022,
-            "month": 12,
-            "day": 30,
-            "hour": 22,
-            "minute": 0,
+def test_all(test_client: TestClient):
+    group = test_client.post("admin/groups", json={"name": "testGroup"})
+    group_id = group.json().get("id")
+    assert group.status_code == 200
+    assert group.json().get("name") == "testGroup"
+    user2 = test_client.post(
+        "/admin/users",
+        json={
+            "name": "testUser2",
+            "room_number": "B311",
+            "password": "superUserPassword",
+            "is_admin": False,
         },
-        "end_time": {
-            "year": 2022,
-            "month": 12,
-            "day": 31,
-            "hour": 8,
-            "minute": 0,
-        },
-        "task": task.get("id"),
-    }
-
-    slot = test_client.post("/slots/", json=slot)
-    assert slot.status_code == 200
-    assert slot.json().get("name") == "testslot"
-    assert slot.json().get("start_time") == {
-        "year": 2022,
-        "month": 12,
-        "day": 30,
-        "hour": 22,
-        "minute": 0,
-    }
-    assert slot.json().get("end_time") == {
-        "year": 2022,
-        "month": 12,
-        "day": 31,
-        "hour": 8,
-        "minute": 0,
-    }
-
-
-def test_open_bid(test_client):
-    slot = test_client.get("/slots/?name=testslot").json()
-    bid = {
-        "name": "testBid",
-        "open_time": {
-            "year": 2022,
-            "month": 12,
-            "day": 30,
-            "hour": 23,
-            "minute": 0,
-        },
-        "close_time": {
-            "year": 2022,
-            "month": 12,
-            "day": 31,
-            "hour": 23,
-            "minute": 0,
-        },
-        "slot": slot.get("id"),
-        "start_point": 10,
-        "buyout_point": 3,
-    }
-    response = test_client.post("/bids/", json=bid)
-    assert response.status_code == 200
-    assert response.json().get("name") == "testBid"
-    assert response.json().get("open_time") == {
-        "year": 2022,
-        "month": 12,
-        "day": 30,
-        "hour": 23,
-        "minute": 0,
-    }
-    assert response.json().get("close_time") == {
-        "year": 2022,
-        "month": 12,
-        "day": 31,
-        "hour": 23,
-        "minute": 0,
-    }
-    assert response.json().get("buyout_point") == 3
-
-
-def test_patch_task(test_client):
-    task = test_client.get("/tasks/?name=testTask").json()
-    update_data = {
-        "max_woker_num": 3,
-        "min_woker_num": 1,
-        "exp_woker_num": 1,
-    }
-    response = test_client.patch("/tasks/" + task.get("id"), json=update_data)
-    assert response.status_code == 200
-    assert response.json().get("max_worker_num") == 3
-    assert response.json().get("min_worker_num") == 1
-    assert response.json().get("exp_worker_num") == 1
-
-
-def test_place_bid(test_client):
-    task = test_client.get("/tasks/?name=testTask").json()
-    add_task = {"exp_task": [task.get("id")]}
-    responsess = test_client.patch(
-        "/users/task",
-        json=add_task,
-        headers={"Authorization": f"Bearer {test_client.access_token_2}"},
     )
-    assert responsess.status_code == 200
-    assert responsess.json().get("exp_task") == [task]
-    bid = test_client.get("/bids/?name=testBid").json()
-    tender_point = {"tender_point": 7}
-    response = test_client.post("/bids/" + bid.get("id") + "/tender", json=tender_point)
-    assert response.status_code == 200
-    assert response.json().get("user_id") == test_client.user.get("id")
-    response = test_client.get("/bidders/?bid_id=" + bid.get("id")).json()
-    assert 10 - response[0].get("point") | response[0].get("point") == 7 | 3
-    response = test_client.post(
-        "/bids/" + bid.get("id") + "/tender",
-        headers={"Authorization": f"Bearer {test_client.access_token_2}"},
-        json=tender_point,
+    user3 = test_client.post(
+        "/admin/users",
+        json={
+            "name": "testUser3",
+            "room_number": "B311",
+            "password": "superUserPassword",
+            "is_admin": False,
+        },
     )
-    assert response.status_code == 200
-    assert response.json().get("user_id") == test_client.user2.get("id")
-    response = test_client.get("/bidders/?bid_id=" + bid.get("id")).json()
-    assert 10 - response[0].get("point") | response[0].get("point") == 3 | 7
-    close_response = test_client.post("/bids/" + bid.get("id") + "/close")
-    assert close_response.status_code == 200
-    assert len(close_response.json().get("assignees")) == 2
+    user_4 = test_client.post(
+        "/admin/users",
+        json={
+            "name": "testUser4",
+            "room_number": "B311",
+            "password": "superUserPassword",
+            "is_admin": False,
+        },
+    )
+    assert user2.status_code == 200
+    assert user2.json().get("name") == "testUser2"
+    assert user2.json().get("room_number") == "B311"
+    assert not user2.json().get("is_admin")
+    addusers = test_client.post(
+        "/admin/groups/" + group_id + "/adduser",
+        json={
+            "users": [
+                user2.json().get("id"),
+                user3.json().get("id"),
+                test_client.user.get("id"),
+            ]
+        },
+    )
+    assert addusers.status_code == 200
+    assert addusers.json().get("users")[0].get("name") == "testUser2"
+    assert addusers.json().get("users")[0].get("role") == "super"
+    assert addusers.json().get("users")[1].get("name") == "testUser3"
+    assert addusers.json().get("users")[1].get("role") == "super"
+    assert addusers.json().get("users")[2].get("name") == test_client.user.get("name")
+    assert addusers.json().get("users")[2].get("role") == "super"
 
-    slot_id = close_response.json().get("id")
-    cancel = test_client.post("/slots/" + slot_id + "/cancel")
-    assert cancel.status_code == 200
-    after_cancel = test_client.get("/slots/?name=testslot")
-    assert len(after_cancel.json().get("assignees")) == 1
-    reassign = test_client.post("/slots/" + slot_id + "/reassign")
-    assert reassign.status_code == 200
-    after_reassign = test_client.get("/slots/?name=testslot")
-    assert len(after_reassign.json().get("assignees")) == 2
-    print("レスポンセ", after_reassign.json(), "レスポンセ")
-    end = test_client.post("/slots/" + slot_id + "/complete")
-    assert end.status_code == 200
-    assert end.json().get("point") == 3
-    assert end.json().get("exp_task") == [task]
 
+    role_change = test_client.patch(
+        group_id + "/users/" + user3.json().get("id") + "/role",
+        headers={"Authorization": f"Bearer {test_client.user.get('access_token')}"},
+        json={
+            "role": "normal",
+        },
+    )
+    assert role_change.status_code == 200
+    assert role_change.json().get("role") == "normal"
+    user3_Login = test_client.post(
+        "/login",
+        data={
+            "username": "testUser3",
+            "password": "superUserPassword",
+        },
+    )
+    user_4_Login = test_client.post(
+        "/login",
+        data={
+            "username": "testUser4",
+            "password": "superUserPassword",
+        },
+    )
 
-{
-    "name": "testuser",
-    "password": "testpassword",
-    "block": "B3",
-    "room_number": "B310",
-}
+    add_task = test_client.post(
+        group_id + "/tasks",
+        json={
+            "name": "testTask",
+            "detail": "testDetail",
+            "max_worker_num": 1,
+            "min_worker_num": 1,
+            "exp_worker_num": 0,
+            "point": 1,
+        },
+    )
+    add_task2= test_client.post(
+        group_id + "/tasks",
+        json={
+            "name": "testTask2",
+            "detail": "testDetail",
+            "max_worker_num": 1,
+            "min_worker_num": 1,
+            "exp_worker_num": 1,
+            "point": 1,
+        },  
+    )
+    assert add_task.status_code == 200
+    assert add_task.json().get("name") == "testTask"
+    assert add_task.json().get("detail") == "testDetail"
+    assert add_task.json().get("max_worker_num") == 1
+    assert add_task.json().get("min_worker_num") == 1
+    assert add_task.json().get("exp_worker_num") == 0
+    assert add_task.json().get("point") == 1
+    assert add_task.json().get("group_id") == group_id
+    add_task_Faliure = test_client.post(
+        group_id + "/tasks",
+        headers={"Authorization": f"Bearer {user3_Login.json().get('access_token')}"},
+        json={
+            "name": "testTask",
+            "detail": "testDetail",
+            "max_worker_num": 1,
+            "min_worker_num": 1,
+            "exp_worker_num": 1,
+            "point": 1,
+        },
+    )
+    assert add_task_Faliure.status_code == 403
+    add_slot = test_client.post(
+        group_id + "/slots",
+        json={
+            "name": "testSlot",
+            "start_time": "2021-01-01T00:00:00",
+            "end_time": "2030-01-01T01:00:00",
+            "task_id": add_task.json().get("id"),
+        },
+    )
+    add_slot2 = test_client.post(
+        group_id + "/slots",
+        json={
+            "name": "testSlot2",
+            "start_time": "2021-01-01T00:00:00",
+            "end_time": "2030-01-01T01:00:00",
+            "task_id": add_task2.json().get("id"),
+        },
+    )
+
+    assert add_slot.status_code == 200
+    assert add_slot.json().get("name") == "testSlot"
+    assert add_slot.json().get("start_time") == "2021-01-01T00:00:00"
+    assert add_slot.json().get("end_time") == "2030-01-01T01:00:00"
+    assert add_slot.json().get("task_id") == add_task.json().get("id")
+    assert add_slot.json().get("creater_id") == test_client.user.get("id")
+    add_slot_Faliure = test_client.post(
+        group_id + "/slots",
+        headers={"Authorization": f"Bearer {user_4_Login.json().get('access_token')}"},
+        json={
+            "name": "testSlot",
+            "start_time": "2021-01-01T00:00:00",
+            "end_time": "2021-01-01T01:00:00",
+            "task_id": add_task.json().get("id"),
+        },
+    )
+    assert add_slot_Faliure.status_code == 403
+    assign_slot = test_client.post(
+        group_id + "/slots/" + add_slot.json().get("id") + "/assign",
+    )
+    assert assign_slot.status_code == 200
+    assign_slot_Failure = test_client.post(
+        group_id + "/slots/" + add_slot.json().get("id") + "/assign",
+        headers={"Authorization": f"Bearer {user_4_Login.json().get('access_token')}"},
+    )
+    assert assign_slot_Failure.status_code == 403
+    assign_slot_Failure2= test_client.post(
+        group_id + "/slots/" + add_slot2.json().get("id") + "/assign",
+        headers={"Authorization": f"Bearer {user_4_Login.json().get('access_token')}"},
+    )
+    assert assign_slot_Failure2.status_code == 403
+    cancel_slot = test_client.post(
+        group_id + "/slots/" + add_slot.json().get("id") + "/cancel",
+    )
+    assert cancel_slot.status_code == 200
+    assert cancel_slot.json().get("assignees") == []
+    assign_slot= test_client.post(
+        group_id + "/slots/" + add_slot.json().get("id") + "/assign",
+    )
+    assert assign_slot.status_code == 200
+    complete_slot= test_client.post(
+        group_id + "/slots/" + add_slot.json().get("id") + "/complete",
+    )
+    assert complete_slot.status_code == 200
+    assert complete_slot.json().get("assignees") == []
+    complete_user= test_client.get(
+        "/me",
+    )
+    assert complete_user.status_code == 200
+    assert complete_user.json().get("exp_tasks")[0].get("id") == add_task.json().get("id")
+    

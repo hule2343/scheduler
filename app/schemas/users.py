@@ -45,5 +45,8 @@ class GroupUsers(BaseModel):
 class UserAddRequest(BaseModel):
     user_id: str
 
-class UserRoleChange(BaseModel):
-    role: Role
+class UsersAddRequest(BaseModel):
+    user_ids: list[str]
+
+class UserRolesChange(BaseModel):
+    role_ids: list[str]

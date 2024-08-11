@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from sqlalchemy.orm.session import close_all_sessions
 from starlette.types import ASGIApp
 
+from app.cruds.admin import create_admin
 from app.database import Base, get_db
 from app.main import app
 
@@ -65,31 +66,23 @@ class MyTestClient(TestClient):
             backend_options,
             cookies,
         )
-        response = super().post("/register/", json=testUser)
-        self.user = response.json()
-        response2 = super().post("/register/", json=testUser2)
-        self.user2 = response2.json()
-        self.access_token = (
-            super()
-            .post(
-                "/login",
-                data={"username": "test_user", "password": "testUserPassword"},
-            )
-            .json()
-            .get("access_token")
+        _ = create_admin(
+            admin_user["name"], admin_user["password"], admin_user["room_number"]
         )
-        self.access_token_2 = (
+        session_info = (
             super()
             .post(
                 "/login",
                 data={
-                    "username": "test_user_2",
-                    "password": "testUser2Password",
+                    "username": admin_user["name"],
+                    "password": admin_user["password"],
                 },
             )
             .json()
-            .get("access_token")
         )
+        self.access_token = session_info.get("access_token")
+        self.user = session_info
+        
 
     def get(
         self,
