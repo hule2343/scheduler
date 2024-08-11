@@ -117,13 +117,32 @@ class Group(Base):
     templates: Mapped[None | list[Template]] = relationship(
         back_populates="group",cascade="all,delete"
     )
+    roles: Mapped[None | list[Role]] = relationship(
+        back_populates="group",cascade="all,delete"
+    )
 
 
 class Role(enum.Enum):
-    super = "super"
-    normal = "normal"
-    pending = "pending"
-
+    __tablename__ = "role"
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("group.id", ondelete="CASCADE"), primary_key=True
+    )
+    group: Mapped[Group] = relationship(back_populates="roles")
+    users: Mapped[None | list[GroupUser]] = relationship(
+        back_populates="roles",
+    )
+    add_user: Mapped[bool] = mapped_column(default=False)
+    add_task: Mapped[bool] = mapped_column(default=False)
+    add_template: Mapped[bool] = mapped_column(default=False)
+    add_slot: Mapped[bool] = mapped_column(default=False)
+    add_exp: Mapped[bool] = mapped_column(default=False)
+    add_point: Mapped[bool] = mapped_column(default=False)
+    add_role: Mapped[bool] = mapped_column(default=False)
+    add_group: Mapped[bool] = mapped_column(default=False)
+    add_user_role: Mapped[bool] = mapped_column(default=False)
+    
+    
+    
 
 class GroupUser(Base):
     __tablename__ = "groupuser"
@@ -136,7 +155,7 @@ class GroupUser(Base):
     )
     user: Mapped[User] = relationship(back_populates="groups")
     point: Mapped[int] = mapped_column(default=0)
-    role: Mapped["Role"] = mapped_column(default=Role.pending)
+    roles: Mapped[list[Role]] = relationship(back_populates="users")
 
 
 class User(Base):
