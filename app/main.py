@@ -12,6 +12,7 @@ from app.router import (
     template,
     user,
     groups,
+    role,
 )
 from app.database import DATABASE
 app = FastAPI()
@@ -46,4 +47,5 @@ app.include_router(slot.router, prefix="/{group_id}/slots")
 app.include_router(task.router, prefix="/{group_id}/tasks")
 app.include_router(template.router, prefix="/{group_id}/templates")
 app.include_router(user.router, prefix="/{group_id}/users")
+app.include_router(role.router, prefix="/{group_id}/roles")
 app.include_router(message.router, prefix="/{group_id}/message")

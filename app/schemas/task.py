@@ -1,3 +1,4 @@
+from datetime import timedelta
 from uuid import UUID
 
 from pydantic import BaseModel, Field, root_validator
@@ -13,6 +14,7 @@ class TaskCreate(TaskBase):
     min_worker_num: int = Field(default=1, gte=0)
     exp_worker_num: int = Field(default=0, gte=0)
     point: int = Field(0, gt=0)
+    duration: timedelta
 
     @root_validator(pre=True)
     def validate_worker_num(cls, values):

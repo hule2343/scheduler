@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
-
 from app.cruds import auth
 from app.cruds import task as crud
 from app.cruds.response import task_display
@@ -37,6 +36,7 @@ async def task_post(
         min_worker_num=task.min_worker_num,
         exp_worker_num=task.exp_worker_num,
         point=task.point,
+        duration=task.duration,
         creater_id=current_user.id,
         group_id=group_id,
     )

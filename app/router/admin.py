@@ -135,13 +135,12 @@ async def create_superuser(
             select(GroupUser).filter_by(user_id=user_id, group_id=group_id).limit(1)
         ).first()
         if not group_user:
-            group_user = GroupUser(user_id=user_id, group_id=group_id, role="super")
+            group_user = GroupUser(user_id=user_id, group_id=group_id)
             db.add(group_user)
             db.commit()
             db.refresh(group_user)
             response_users.append(group_user)
             continue
-        group_user.role = "super"
         db.commit()
         db.refresh(group_user)
         response_users.append(group_user)

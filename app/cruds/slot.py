@@ -41,7 +41,6 @@ def post(request: SlotCreate, db: Session, user: User):
     new_slot = Slot(
         name=request.name,
         start_time=request.start_time,
-        end_time=request.end_time,
         task_id=request.task_id,
         creater_id=user.id,
     )

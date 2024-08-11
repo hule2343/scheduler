@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import uuid
 from datetime import datetime, time, timedelta
 from uuid import uuid4
 
 from sqlalchemy import Column, ForeignKey, String, Table
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.database import Base
 
 experience_table = Table(
@@ -20,6 +22,13 @@ slots_table = Table(
     Base.metadata,
     Column("user", ForeignKey("user.id")),
     Column("slot", ForeignKey("slot.id")),
+)
+
+roles_table = Table(
+    "roles_table",
+    Base.metadata,
+    Column("groupuser", ForeignKey("groupuser.id"), primary_key=True),
+    Column("role", ForeignKey("role.id"), primary_key=True),
 )
 
 
@@ -39,6 +48,7 @@ class Slot(Base):
         ForeignKey("task.id", ondelete="CASCADE")
     )
     task: Mapped[Task] = relationship(back_populates="slots", uselist=False)
+
     @hybrid_property
     def end_time(self):
         return self.start_time + self.task.duration
@@ -53,7 +63,7 @@ class Task(Base):
     min_worker_num: Mapped[int] = mapped_column(default=1)  # 最少人数
     exp_worker_num: Mapped[int] = mapped_column(default=0)  # 必要な経験者の人数
     point: Mapped[int] = mapped_column(default=0)
-    duration:Mapped[timedelta] = mapped_column(default=timedelta(hours=1) )
+    duration: Mapped[timedelta] = mapped_column(default=timedelta(hours=1))
     slots: Mapped[list[Slot] | None] = relationship(
         back_populates="task", cascade="all,delete"
     )
@@ -86,12 +96,15 @@ class TaskTemplate(Base):
     task: Mapped[Task] = relationship(back_populates="tasktemplates")
     date_from_start: Mapped[int] = mapped_column(default=0)
     start_time: Mapped[time]
+
     @hybrid_property
     def name(self):
         return self.start_time.strftime("%m/%d %H時") + self.task.name
+
     @hybrid_property
     def end_time(self):
         return self.start_time + self.task.duration
+
 
 class Template(Base):
     __tablename__ = "template"
@@ -126,12 +139,14 @@ class Group(Base):
 
 class Role(Base):
     __tablename__ = "role"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(20))
     group_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("group.id", ondelete="CASCADE"), primary_key=True
+        ForeignKey("group.id", ondelete="CASCADE")
     )
     group: Mapped[Group] = relationship(back_populates="roles")
     users: Mapped[None | list[GroupUser]] = relationship(
+        secondary="roles_table",
         back_populates="roles",
     )
     add_user: Mapped[bool] = mapped_column(default=False)
@@ -151,16 +166,19 @@ class Role(Base):
 
 class GroupUser(Base):
     __tablename__ = "groupuser"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     group_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("group.id", ondelete="CASCADE"), primary_key=True
+        ForeignKey("group.id", ondelete="CASCADE")
     )
     group: Mapped[Group] = relationship(back_populates="users")
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("user.id", ondelete="CASCADE"), primary_key=True
+        ForeignKey("user.id", ondelete="CASCADE")
     )
     user: Mapped[User] = relationship(back_populates="groups")
     point: Mapped[int] = mapped_column(default=0)
-    roles: Mapped[list[Role]] = relationship(back_populates="users")
+    roles: Mapped[None | list[Role]] = relationship(
+        secondary="roles_table", back_populates="users"
+    )
 
 
 class User(Base):
