@@ -29,7 +29,7 @@ async def task_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(auth.get_current_active_user),
 ):
-    auth.check_privilege(group_id, current_user.id, "super", db)
+    auth.check_privilege(group_id, current_user.id, "edit_task", db)
     task = Task(
         name=task.name,
         detail=task.detail,
@@ -66,7 +66,7 @@ async def task_patch(
     user: User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    auth.check_privilege(group_id, user.id, "super", db)
+    auth.check_privilege(group_id, user.id, "edit_task", db)
     task = crud.patch(task, task_id, db)
     return task_display(task)
 
@@ -78,7 +78,7 @@ async def task_delete(
     user: User = Depends(auth.get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    auth.check_privilege(group_id, user.id, "super", db)
+    auth.check_privilege(group_id, user.id, "edit_task", db)
     task = db.get(Task, task_id)
     db.delete(task)
     db.commit()

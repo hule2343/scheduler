@@ -43,7 +43,7 @@ async def slot_post(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "normal", db)
+    check_privilege(group_id, user.id, "edit_slot", db)
     slot = crud.post(request, db, user)
     return slot_display(slot)
 
@@ -56,7 +56,7 @@ async def slots_delete(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal", db)
+    check_privilege(group_id, user.id, "edit_slot", db)
     if expired:
         expired_slots = crud.delete_expired_slots(group_id, db)
         return expired_slots
@@ -86,7 +86,7 @@ async def slot_patch(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal", db)
+    check_privilege(group_id, user.id, "edit_slot", db)
     slot = crud.patch(request, slot_id, db)
     return slot_display(slot)
 
@@ -98,7 +98,7 @@ async def slot_delete(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    check_privilege(group_id, user.id, "normal", db)
+    check_privilege(group_id, user.id, "edit_slot", db)
     slot = db.get(Slot, slot_id)
     if not slot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

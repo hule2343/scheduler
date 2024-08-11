@@ -10,7 +10,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import GroupUser, Role, User
+from app.models.models import GroupUser,User
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -93,24 +93,25 @@ async def get_admin_user(current_user: User = Depends(get_current_user)):
 
 
 def check_privilege(
-    group_id: str, user_id: str, role: Role, db: Session
+    group_id: str, user_id: str, permission:str, db: Session
 ):
     group_user = db.scalars(
         select(GroupUser).filter_by(group_id=group_id, user_id=user_id).limit(1)
     ).first()
     user = db.get(User, user_id)
+    
     if user.is_admin:
         return
+    
     if not group_user:
         raise HTTPException(status_code=403, detail="このグループには所属していません")
+    
+    if permission=="normal":
+        return 
 
-    if role == "super":
-        if group_user.role != "super" and not user.is_admin:
-            raise HTTPException(status_code=403, detail="権限がありません")
-
-    if role == "normal":
-        if group_user.role != "super" and group_user.role != "normal":
-            raise HTTPException(
-                status_code=403, detail="承認待ちのため、権限がありません"
-            )
-    return
+    for role in group_user.roles:
+        if getattr(role,permission):
+            return
+        
+    raise HTTPException(status_code=403, detail="権限がありません")
+ 
