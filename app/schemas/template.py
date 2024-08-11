@@ -44,7 +44,6 @@ class TemplateTaskBase(BaseModel):
     id: UUID
     date_from_start: int
     start_time: datetime.time
-    end_time: datetime.time
 
     def __hash__(self):
         return hash(

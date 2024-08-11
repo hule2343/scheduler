@@ -7,7 +7,21 @@ export type ResponseBase = {
 };
 
 export type GroupResponse = ResponseBase & {
-  role: "super" | "normal" | "pending"| null;
+  role: ResponseBase[] | null;
+};
+
+export type RoleResponse = ResponseBase & {
+  permissions: [
+    | "add_user"
+    | "remove_user"
+    | "edit_task"
+    | "edit_template"
+    | "edit_role"
+    | "change_user_role"
+    | "edit_slot"
+    | "add_slot_from_template"
+    | "edit_point"
+  ];
 };
 
 export type GroupUserResponse = GroupResponse & {
@@ -42,6 +56,7 @@ export type TaskResponse = ResponseBase & {
   min_worker_num: number;
   exp_worker_num: number;
   point: number;
+  duration: string;
   creater_id: string;
   creater_name: string;
   group_id: string;
