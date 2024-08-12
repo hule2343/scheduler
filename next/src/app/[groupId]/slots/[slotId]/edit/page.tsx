@@ -14,7 +14,7 @@ export default function SlotEdit({
 }: {
   params: { groupId: string; slotId: string };
 }) {
-  const { data, error, isLoading, mutate } = useSWR<SlotResponse>(
+  const { data, error, isLoading } = useSWR<SlotResponse>(
     `/${params.groupId}/slots/${params.slotId}`,
     fetcher
   );
@@ -32,7 +32,7 @@ export default function SlotEdit({
   if (error | taskError) return <div>error</div>;
   if (isLoading || taskIsLoading) return <div>loading...</div>;
   if (!data || !taskData) return <div>no data</div>;
-  if(!task_id) return <div>no task_id</div>;
+  if (!task_id) return <div>no task_id</div>;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,7 +43,6 @@ export default function SlotEdit({
       .patch(`${params.groupId}/slots/${params.slotId}`, {
         name: data.get("name"),
         start_time: new Date(data.get("start_time") as string).toISOString(),
-        end_time: new Date(data.get("end_time") as string).toISOString(),
         task_id: task_id,
       })
       .then((response) => {

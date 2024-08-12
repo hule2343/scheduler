@@ -10,24 +10,33 @@ export type GroupResponse = ResponseBase & {
   role: ResponseBase[] | null;
 };
 
+export const permissions = [
+  "add_user",
+  "remove_user",
+  "edit_task",
+  "edit_template",
+  "edit_role",
+  "change_user_role",
+  "edit_slot",
+  "add_slot_from_template",
+  "edit_point",
+] as const;
+
+export type Permission = typeof permissions[number];
+
 export type RoleResponse = ResponseBase & {
-  permissions: [
-    | "add_user"
-    | "remove_user"
-    | "edit_task"
-    | "edit_template"
-    | "edit_role"
-    | "change_user_role"
-    | "edit_slot"
-    | "add_slot_from_template"
-    | "edit_point"
-  ];
+  permissions: Permission[];
+};
+
+export type RolesResponse = {
+  roles: RoleResponse[];
 };
 
 export type GroupUserResponse = GroupResponse & {
   room_number: string;
   point: number;
   is_active: boolean;
+  is_admin: boolean;
 };
 
 export type GroupUsersResponse = {
@@ -56,7 +65,7 @@ export type TaskResponse = ResponseBase & {
   min_worker_num: number;
   exp_worker_num: number;
   point: number;
-  duration: string;
+  duration: number|string;
   creater_id: string;
   creater_name: string;
   group_id: string;

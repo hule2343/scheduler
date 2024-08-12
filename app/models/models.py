@@ -179,6 +179,7 @@ class GroupUser(Base):
     roles: Mapped[None | list[Role]] = relationship(
         secondary="roles_table", back_populates="users"
     )
+    is_admin: Mapped[bool] = mapped_column(default=False)
 
 
 class User(Base):

@@ -3,8 +3,15 @@ import { Grid } from "@mui/material"
 import TextField from "@mui/material/TextField"
 import Button from "@mui/material/Button"
 import SelectField from "./SelectField"
+
+
+type SlotRequest = {
+    name: string,
+    start_time: string,
+    task_id: string,
+}
 export const SlotForm = ({ data, tasks, task_id, setData }: {
-    data: SlotResponse, tasks: ResponseBase[], task_id: string,
+    data: SlotRequest, tasks: ResponseBase[], task_id: string,
     setData: React.Dispatch<React.SetStateAction<string>>;
 }) => {
     return (
@@ -29,17 +36,6 @@ export const SlotForm = ({ data, tasks, task_id, setData }: {
                     name="start_time"
                     type='datetime-local'
                     defaultValue={data.start_time.slice(0, 16)}
-                />
-            </Grid>
-            <Grid item xs={12} >
-                <TextField
-                    fullWidth
-                    required
-                    id="end_time"
-                    label="終了時刻"
-                    name="end_time"
-                    type='datetime-local'
-                    defaultValue={data.end_time.slice(0, 16)}
                 />
             </Grid>
             <Grid item xs={12} >

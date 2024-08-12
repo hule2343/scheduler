@@ -12,6 +12,7 @@ import {
   Box,
   Typography,
   Button,
+  Tab,
 } from "@mui/material";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
@@ -59,7 +60,7 @@ export default function AdminAddSuperUser({
                 <TableRow key={user.id}>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.room_number}</TableCell>
-                  <TableCell>{user.role}</TableCell>
+                  <TableCell>{user.is_admin ? "管理者" : "一般"}</TableCell>
                   <TableCell>
                     <FormControlLabel
                       control={
@@ -67,7 +68,7 @@ export default function AdminAddSuperUser({
                           id="addUser"
                           name="addUser"
                           value={user.id}
-                          defaultChecked={user.role === "super" ? true : false}
+                          defaultChecked={user.is_admin}
                           inputProps={{ "aria-label": "controlled" }}
                         />
                       }

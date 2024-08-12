@@ -44,7 +44,7 @@ export default function AdminGroupList() {
                 </TableCell>
                 <TableCell>
                   <Link href={`groups/${group.id}/adduser`}>
-                    スーパーユーザー追加
+                     管理者追加
                   </Link>
                 </TableCell>
               </TableRow>
