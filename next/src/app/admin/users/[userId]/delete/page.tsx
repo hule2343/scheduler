@@ -1,6 +1,6 @@
 "use client";
 import DeleteConfirmForm from "@/components/form/DeleteConfirmForm";
-import axios from "axios";
+import axios from "@/axios";
 
 export default function UserDeleteForm({
   params,

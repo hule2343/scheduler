@@ -21,13 +21,6 @@ export default function UserList({ params }: { params: { groupId: string } }) {
   if (!data) return <div>no data</div>;
   if (isLoading) return <div>loading...</div>;
 
-  const handleRoleChange = (userId: string, role: string) => {
-    axios
-      .patch(`${params.groupId}/users/${userId}/role`, { role: role })
-      .then((res) => {})
-      .catch((error) => {});
-  };
-
   const handleUserRemove = (userId: string) => {
     axios
       .delete(`${params.groupId}/users/${userId}`)
@@ -46,8 +39,6 @@ export default function UserList({ params }: { params: { groupId: string } }) {
             <TableCell>ユーザー名</TableCell>
             <TableCell>部屋番号</TableCell>
             <TableCell>ポイント</TableCell>
-            <TableCell>権限</TableCell>
-            <TableCell></TableCell>
             <TableCell></TableCell>
           </TableRow>
         </TableHead>
@@ -60,26 +51,6 @@ export default function UserList({ params }: { params: { groupId: string } }) {
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.room_number}</TableCell>
                   <TableCell>{user.point}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>
-                    {user.role === "normal" ? (
-                      <Button
-                        onClick={() => {
-                          handleRoleChange(user.id, "super");
-                        }}
-                      >
-                        スーパーユーザーに変更
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => {
-                          handleRoleChange(user.id, "normal");
-                        }}
-                      >
-                        ノーマルユーザーに変更
-                      </Button>
-                    )}
-                  </TableCell>
                   <TableCell>
                     <Button
                       onClick={() => {

@@ -73,6 +73,21 @@ async def admin_user_patch(
     return user_display(user)
 
 
+@router.delete("/users/{user_id}")
+async def admin_user_delete(
+    user_id: str,
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    db.delete(user)
+    db.commit()
+    return user_display(user)
+
+
 @router.get("/groups")
 async def group_list(
     db: Session = Depends(get_db),
@@ -87,6 +102,9 @@ async def create_group(
     db: Session = Depends(get_db),
 ):
     group = Group(name=request.name)
+    db.add(group)
+    db.commit()
+    db.refresh(group)
     role = Role(
         name="管理者",
         group_id=group.id,
@@ -100,10 +118,8 @@ async def create_group(
         add_slot_from_template=True,
         edit_point=True,
     )
-    db.add(group)
     db.add(role)
     db.commit()
-    db.refresh(group)
     db.refresh(role)
     return response_base(group)
 
@@ -159,6 +175,27 @@ async def create_superuser(
         group_user.is_admin = True
         db.commit()
         db.refresh(group_user)
+        response_users.append(group_user)
+
+    return {"users": [group_user_display(user) for user in response_users]}
+
+
+@router.post("/groups/{group_id}/user")
+async def add_user_to_group(
+    group_id: str, request: AddSuperUserRequest, db: Session = Depends(get_db)
+):
+    response_users = []
+    for user_id in request.users:
+        group_user = db.scalars(
+            select(GroupUser).filter_by(user_id=user_id, group_id=group_id).limit(1)
+        ).first()
+        if not group_user:
+            group_user = GroupUser(user_id=user_id, group_id=group_id)
+            db.add(group_user)
+            db.commit()
+            db.refresh(group_user)
+            response_users.append(group_user)
+            continue
         response_users.append(group_user)
 
     return {"users": [group_user_display(user) for user in response_users]}

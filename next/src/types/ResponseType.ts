@@ -48,6 +48,10 @@ export type UserResponse = ResponseBase & {
   is_active: boolean;
 };
 
+export type UsersResponse = {
+  users: UserResponse[];
+};
+
 export type UserDetailResponse = ResponseBase & {
   room_number: string;
   groups: ResponseBase[];

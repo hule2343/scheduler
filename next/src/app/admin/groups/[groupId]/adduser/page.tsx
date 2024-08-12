@@ -1,94 +1,75 @@
-"use client";
+'use client'
 import useSWR from "swr";
 import axios, { fetcher } from "@/axios";
-import { GroupUsersResponse } from "@/types/ResponseType";
+import { UsersResponse } from "@/types/ResponseType";
 import {
+  Box,
   Table,
   TableHead,
-  TableRow,
   TableCell,
   TableBody,
-  Container,
-  Box,
-  Typography,
+  TableRow,
   Button,
-  Tab,
+  Checkbox,
 } from "@mui/material";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-export default function AdminAddSuperUser({
-  params,
-}: {
-  params: { groupId: string };
-}) {
-  const { data, error, isLoading } = useSWR<GroupUsersResponse>(
-    `/${params.groupId}/users`,
+import { useState } from "react";
+
+export default function AddUserForm({ params }: { params: { groupId: string } }) {
+  const { data, error, mutate, isLoading } = useSWR<UsersResponse>(
+    `/admin/users`,
     fetcher
   );
+  const [userIds, setUserIds] = useState<string[]>([]);
   if (error) return <div>error</div>;
   if (!data) return <div>no data</div>;
   if (isLoading) return <div>loading...</div>;
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    const data = new FormData(event.currentTarget);
-    const users_id = data.getAll("addUser");
-    console.log(users_id);
-    axios
-      .post(`admin/groups/${params.groupId}/adduser`, { users: users_id })
-      .then((res) => {})
-      .catch((err) => {});
+  const onChecked = (id: string) => {
+    if (userIds.includes(id)) {
+      setUserIds(userIds.filter((userId) => userId !== id));
+    } else {
+      setUserIds([...userIds, id]);
+    }
   };
-
+    const handleAddUser = () => {
+    axios
+      .post(`/admin/groups/${params.groupId}/users`, {
+        user_ids: userIds,
+      })
+      .then((res) => {
+        mutate();
+      })
+      .catch((err) => {console.log(err)});
+  };
   return (
-    <Container component="main" maxWidth="xs">
-      <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
-        <Typography component="h1" variant="h5">
-          グループを編集
-        </Typography>
+    <>
+      <Box component="form" onSubmit={handleAddUser}>
+        <Button type="submit">追加</Button>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>ユーザー名</TableCell>
               <TableCell>部屋番号</TableCell>
-              <TableCell>権限</TableCell>
-              <TableCell> </TableCell>
+              <TableCell>休寮</TableCell>
+              <TableCell></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.users.map((user) => {
-              return (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.room_number}</TableCell>
-                  <TableCell>{user.is_admin ? "管理者" : "一般"}</TableCell>
-                  <TableCell>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          id="addUser"
-                          name="addUser"
-                          value={user.id}
-                          defaultChecked={user.is_admin}
-                          inputProps={{ "aria-label": "controlled" }}
-                        />
-                      }
-                      label="追加"
-                    />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {data.users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.room_number}</TableCell>
+                <TableCell>{user.is_active ? "" : "休寮"}</TableCell>
+                <TableCell>
+                  <Checkbox
+                    value={user.id}
+                    onChange={() => onChecked(user.id)}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          sx={{ mt: 3, mb: 2 }}
-        >
-          保存
-        </Button>
       </Box>
-    </Container>
+    </>
   );
 }
