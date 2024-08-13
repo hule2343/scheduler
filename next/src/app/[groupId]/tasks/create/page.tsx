@@ -4,6 +4,7 @@ import { Container, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import { TaskForm } from "@/components/form/TaskForm";
 import { useSnackbarContext } from "@/components/provider/SnackBar";
+import Link from "next/link";
 export default function TaskCreateForm({
   params,
 }: {
@@ -13,7 +14,7 @@ export default function TaskCreateForm({
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-
+    console.log(data.get("duration"));
     axios
       .post(`${params.groupId}/tasks/`, {
         name: data.get("name"),
@@ -22,7 +23,7 @@ export default function TaskCreateForm({
         min_worker_num: data.get("min_worker_num"),
         exp_worker_num: data.get("exp_worker_num"),
         point: data.get("point"),
-        duration: data.get("duration") ?? 0 * 60,
+        duration: parseInt(data.get("duration") as string) * 60,
       })
       .then((response) => {
         showSnackbar("success", "作成しました");
@@ -54,6 +55,7 @@ export default function TaskCreateForm({
         </Typography>
         <TaskForm data={defaultData} />
       </Box>
+      <Link href={`/${params.groupId}/tasks`}>一覧へ戻る</Link>
     </Container>
   );
 }

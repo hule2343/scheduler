@@ -39,7 +39,6 @@ export default function TemplateCreate({
     id: "",
     date_from_start: 0,
     start_time: "08:00",
-    end_time: "09:00",
     task_id: "",
     name: "",
   });
@@ -149,7 +148,6 @@ export default function TemplateCreate({
                     <TableRow>
                       <TableCell>名前</TableCell>
                       <TableCell>開始時刻</TableCell>
-                      <TableCell>終了時刻</TableCell>
                       <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
@@ -160,7 +158,6 @@ export default function TemplateCreate({
                         <TableRow key={index}>
                           <TableCell>{slot.name}</TableCell>
                           <TableCell>{slot.start_time}</TableCell>
-                          <TableCell>{slot.end_time}</TableCell>
                           <TableCell>
                             <Button onClick={() => handleTaskRemove(slot)}>
                               削除

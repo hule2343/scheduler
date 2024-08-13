@@ -20,7 +20,6 @@ class TemplateSlot(BaseModel):
     name: str
     date_from_start: int
     start_time: datetime.time
-    end_time: datetime.time
 
     class Config:
         from_attributes = True

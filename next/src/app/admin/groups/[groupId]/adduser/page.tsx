@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import useSWR from "swr";
 import axios, { fetcher } from "@/axios";
 import { UsersResponse } from "@/types/ResponseType";
@@ -14,7 +14,11 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 
-export default function AddUserForm({ params }: { params: { groupId: string } }) {
+export default function AddUserForm({
+  params,
+}: {
+  params: { groupId: string };
+}) {
   const { data, error, mutate, isLoading } = useSWR<UsersResponse>(
     `/admin/users`,
     fetcher
@@ -30,15 +34,18 @@ export default function AddUserForm({ params }: { params: { groupId: string } })
       setUserIds([...userIds, id]);
     }
   };
-    const handleAddUser = () => {
+  const handleAddUser = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     axios
-      .post(`/admin/groups/${params.groupId}/users`, {
-        user_ids: userIds,
+      .post(`/admin/groups/${params.groupId}/user`, {
+        users: userIds,
       })
       .then((res) => {
         mutate();
       })
-      .catch((err) => {console.log(err)});
+      .catch((err) => {
+        console.log(err);
+      });
   };
   return (
     <>

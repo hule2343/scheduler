@@ -36,6 +36,7 @@ export default function TaskList({ params }: { params: { groupId: string } }) {
           <TableRow>
             <TableCell>仕事名</TableCell>
             <TableCell>ポイント</TableCell>
+            <TableCell>所要時間(分)</TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
@@ -46,6 +47,7 @@ export default function TaskList({ params }: { params: { groupId: string } }) {
             <TableRow key={task.id}>
               <TableCell>{task.name}</TableCell>
               <TableCell>{task.point}</TableCell>
+              <TableCell>{task.duration/60}</TableCell>
               <TableCell>
                 <Link href={`/${params.groupId}/tasks/${task.id}`}>詳細</Link>
               </TableCell>

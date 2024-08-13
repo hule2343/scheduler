@@ -69,7 +69,7 @@ export type TaskResponse = ResponseBase & {
   min_worker_num: number;
   exp_worker_num: number;
   point: number;
-  duration: number|string;
+  duration: number;
   creater_id: string;
   creater_name: string;
   group_id: string;
@@ -92,7 +92,6 @@ export type SlotResponse = ResponseBase & {
 export type TemplateTask = ResponseBase & {
   date_from_start: number;
   start_time: string;
-  end_time: string;
 };
 
 export type TemplateTaskResponse = TemplateTask & {

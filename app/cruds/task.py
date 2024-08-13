@@ -54,6 +54,8 @@ def patch(request: TaskCreate, task_id: str, db: Session):
             exp_worker_num=request.exp_worker_num
             if request.exp_worker_num
             else task.exp_worker_num,
+            point=request.point if request.point else task.point,
+            duration=request.duration if request.duration else task.duration,
         )
         .execution_options(synchronize_session="evaluate")
     )

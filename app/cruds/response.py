@@ -1,5 +1,5 @@
 from app.models.models import GroupUser, Role, Slot, Task, TaskTemplate, Template, User
-
+import isodate
 
 def response_base(model):
     return {
@@ -57,7 +57,7 @@ def task_display(task: Task):
         "min_worker_num": task.min_worker_num,
         "exp_worker_num": task.exp_worker_num,
         "point": task.point,
-        "duration": task.duration,
+        "duration": int(task.duration.total_seconds()),
         "creater_id": task.creater_id,
         "creater_name": task.creater.name,
         "group_id": task.group_id,

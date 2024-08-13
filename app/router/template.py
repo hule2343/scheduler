@@ -121,9 +121,6 @@ async def tasktemplate_add(
         start_time=datetime.time(
             hour=request.start_time.hour, minute=request.start_time.minute
         ),
-        end_time=datetime.time(
-            hour=request.end_time.hour, minute=request.end_time.minute
-        ),
     )
     db.add(tasktemplate)
     template.tasktemplates.append(tasktemplate)
@@ -167,9 +164,6 @@ async def tasktemplate_edit(
     tasktemplate.date_from_start = request.date_from_start
     tasktemplate.start_time = datetime.time(
         hour=request.start_time.hour, minute=request.start_time.minute
-    )
-    tasktemplate.end_time = datetime.time(
-        hour=request.end_time.hour, minute=request.end_time.minute
     )
 
     db.commit()
