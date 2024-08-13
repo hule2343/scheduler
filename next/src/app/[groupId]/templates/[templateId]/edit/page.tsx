@@ -1,5 +1,5 @@
 "use client";
-import { fetcher } from "@/axios";
+import axios, { fetcher }from "@/axios";
 import useSWR from "swr";
 import { TemplateResponse, TemplateTaskResponse } from "@/types/ResponseType";
 import {
@@ -15,7 +15,6 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
-import axios from "axios";
 import { TemplateAddTaskForm } from "@/components/form/TemplateAddTaskForm";
 import { TemplateNameForm } from "@/components/form/TemplateNameForm";
 
@@ -48,7 +47,6 @@ export default function TemplateEdit({
       .post(`/${params.groupId}/templates/${params.templateId}/tasks`, {
         date_from_start: Number(selectTemplateTask?.date_from_start) - 1,
         start_time: selectTemplateTask?.start_time,
-        end_time: selectTemplateTask?.end_time,
         id: selectTemplateTask?.task_id,
       })
       .then((response) => {})
@@ -64,7 +62,6 @@ export default function TemplateEdit({
           id: templateTask.task_id,
           date_from_start: Number(templateTask.date_from_start) - 1,
           start_time: templateTask.start_time,
-          end_time: templateTask.end_time,
         }
       )
       .then((response) => {})
@@ -85,8 +82,10 @@ export default function TemplateEdit({
         <>
           {" "}
           <TemplateAddTaskForm
+            groupId={params.groupId}
             handleSubmit={handleTaskSubmit}
             templateTask={data.slots.find((slot) => selectId === slot.id)!}
+            buttonTitle='変更を保存'
           />
           <Button
             fullWidth
@@ -98,15 +97,16 @@ export default function TemplateEdit({
         </>
       ) : (
         <TemplateAddTaskForm
+          groupId={params.groupId}
           handleSubmit={handleTaskAdd}
           templateTask={{
             id: "",
             date_from_start: 0,
             start_time: "08:00",
-            end_time: "09:00",
             task_id: "",
             name: "",
           }}
+          buttonTitle='新規追加'
         />
       )}
       <Grid container spacing={2}>
@@ -141,11 +141,11 @@ export default function TemplateEdit({
                   <TableBody>
                     {data.slots
                       .filter((slot) => slot.date_from_start === i)
+                      .sort((a, b) => a.start_time.localeCompare(b.start_time))
                       .map((slot, index) => (
                         <TableRow key={index} selected={selectId === slot.id}>
                           <TableCell>{slot.name}</TableCell>
                           <TableCell>{slot.start_time}</TableCell>
-                          <TableCell>{slot.end_time}</TableCell>
                           <TableCell>
                             <Button
                               onClick={() => {

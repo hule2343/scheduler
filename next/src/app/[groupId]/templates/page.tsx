@@ -48,13 +48,13 @@ export default function TemplateList({
             <TableRow key={template.id}>
               <TableCell>{template.name}</TableCell>
               <TableCell>
-                <Link href={`${params.groupId}/templates/${template.id}`}>
+                <Link href={`/${params.groupId}/templates/${template.id}`}>
                   詳細
                 </Link>
               </TableCell>
               <TableCell>
                 <Link
-                  href={`${params.groupId}/templates/${template.id}/generate`}
+                  href={`/${params.groupId}/templates/${template.id}/generate`}
                 >
                   シフトを募集
                 </Link>

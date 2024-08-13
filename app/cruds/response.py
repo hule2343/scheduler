@@ -1,5 +1,4 @@
-from app.models.models import GroupUser, Role, Slot, Task, TaskTemplate, Template, User
-import isodate
+from app.models.models import GroupUser,Group, Role, Slot, Task, TaskTemplate, Template, User
 
 def response_base(model):
     return {
@@ -84,7 +83,6 @@ def tasktemplate_display(tasktemplate: TaskTemplate):
         "task_id": tasktemplate.task_id,
         "date_from_start": tasktemplate.date_from_start,
         "start_time": tasktemplate.start_time,
-        "end_time": tasktemplate.end_time,
     }
 
 
@@ -96,6 +94,12 @@ def group_user_display(user: GroupUser):
         "point": user.point,
         "role": [response_base(role) for role in user.roles],
         "is_active": user.user.is_active,
+    }
+    
+def group_display(group: Group):
+    return {
+        "id": group.id,
+        "name": group.name
     }
 
 

@@ -77,7 +77,6 @@ export default function TemplateCreate({
             id: task.id,
             date_from_start: task.date_from_start,
             start_time: task.start_time,
-            end_time: task.end_time,
           };
         }),
       })

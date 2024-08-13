@@ -23,7 +23,6 @@ export default function TaskEdit({
   if (error) return <div>error</div>;
   if (isLoading) return <div>loading...</div>;
   if (!data) return <div>no data</div>;
-  data.duration = data.duration / 60;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

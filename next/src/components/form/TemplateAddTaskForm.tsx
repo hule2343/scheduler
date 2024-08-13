@@ -1,16 +1,26 @@
 "use client";
+import useSWR from "swr";
 import { Box } from "@mui/system";
 import { TemplateAddTaskFields } from "./TemplateAddFields";
-import {  TemplateTaskResponse } from "@/types/ResponseType";
+import {  TemplateTaskResponse,TasksResponse } from "@/types/ResponseType";
 import { useEffect, useState } from "react";
-
+import { fetcher } from "@/axios";
 export const TemplateAddTaskForm = ({
+  groupId,
   handleSubmit,
   templateTask,
+  buttonTitle,
 }: {
+  groupId: string;
   handleSubmit: (data: TemplateTaskResponse) => void;
-  templateTask: TemplateTaskResponse;
-}) => {
+    templateTask: TemplateTaskResponse;
+    buttonTitle: string;
+  }) => {
+    const {
+      data: taskData,
+      error: taskError,
+      isLoading: taskIsLoading,
+  } = useSWR<TasksResponse>(`/${groupId}/tasks/`, fetcher);
   const [formData, setTemplateTask] = useState<TemplateTaskResponse>();
   useEffect(() => {
     setTemplateTask(templateTask);
@@ -18,46 +28,11 @@ export const TemplateAddTaskForm = ({
   if (!formData) {
     return null;
   }
-  const taskData = {
-    tasks: [
-      {
-        id: "1",
-        name: "task1",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-      {
-        id: "2",
-        name: "task2",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-      {
-        id: "3",
-        name: "task3",
-        detail: "test",
-        max_worker_num: 1,
-        min_worker_num: 1,
-        exp_worker_num: 1,
-        point: 1,
-        creater_id: "1",
-        creater_name: "test",
-        group_id: "1",
-      },
-    ],
-  };
+  
+  if (taskError) return <div>error</div>;
+  if (taskIsLoading) return <div>loading...</div>;
+  if (!taskData) return <div>no data</div>;
+
   return (
     <Box
       component="form"
@@ -67,7 +42,7 @@ export const TemplateAddTaskForm = ({
       maxWidth={500}
     >
       <TemplateAddTaskFields
-        buttonLabel="保存"
+        buttonLabel={buttonTitle}
         templateTask={formData}
         setTemplateTask={setTemplateTask}
         tasks={taskData.tasks}

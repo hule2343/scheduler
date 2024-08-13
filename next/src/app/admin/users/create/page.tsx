@@ -6,6 +6,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
+import Link from "next/link";
 
 export default function AdminUserCreate() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -40,6 +41,7 @@ export default function AdminUserCreate() {
           <AdminUserForm  />
         </Box>
       </Box>
+        <Link href="/admin/users" >ユーザー一覧に戻る</Link>
     </Container>
   );
 }

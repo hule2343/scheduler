@@ -3,7 +3,12 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.cruds.auth import get_admin_user
-from app.cruds.response import response_base, user_detail_display, user_display
+from app.cruds.response import (
+    group_display,
+    response_base,
+    user_detail_display,
+    user_display,
+)
 from app.cruds.user import create_admin
 from app.database import get_db
 from app.models.models import Group, GroupUser, Role, User
@@ -153,7 +158,7 @@ async def delete_group(group_id: str, db: Session = Depends(get_db)):
     group = db.get(Group, group_id)
     db.delete(group)
     db.commit()
-    return group
+    return group_display(group)
 
 
 @router.post("/groups/{group_id}/adduser")
