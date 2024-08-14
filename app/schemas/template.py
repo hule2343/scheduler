@@ -41,7 +41,7 @@ class TemplateList(BaseModel):
 
 class TemplateTaskBase(BaseModel):
     id: UUID
-    date_from_start: int
+    date_from_start: int=Field(ge=0)
     start_time: datetime.time
 
     def __hash__(self):

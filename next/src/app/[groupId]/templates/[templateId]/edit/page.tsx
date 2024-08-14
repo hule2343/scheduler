@@ -47,27 +47,28 @@ export default function TemplateEdit({
   const handleTaskAdd = (selectTemplateTask: TemplateTaskResponse) => {
     axios
       .post(`/${params.groupId}/templates/${params.templateId}/tasks`, {
-        date_from_start: Number(selectTemplateTask?.date_from_start) - 1,
+        date_from_start: Number(selectTemplateTask?.date_from_start),
         start_time: selectTemplateTask?.start_time,
         id: selectTemplateTask?.task_id,
       })
-      .then((response) => {})
+      .then((response) => {mutate()})
       .catch((err) => {});
   };
 
-  const handleTaskSubmit = (templateTask: TemplateTaskResponse) => {
+  const handleTaskEdit = (templateTask: TemplateTaskResponse) => {
     if (!templateTask) return;
     axios
       .patch(
         `/${params.groupId}/templates/${params.templateId}/tasks/${templateTask?.id}`,
         {
           id: templateTask.task_id,
-          date_from_start: Number(templateTask.date_from_start) - 1,
+          date_from_start: Number(templateTask.date_from_start),
           start_time: templateTask.start_time,
         }
       )
       .then((response) => {
-        console.log(response);
+        mutate()
+        
       })
 
       .catch((err) => {});
@@ -88,7 +89,7 @@ export default function TemplateEdit({
           {" "}
           <TemplateAddTaskForm
             groupId={params.groupId}
-            handleSubmit={handleTaskSubmit}
+            handleSubmit={handleTaskEdit}
             templateTask={data.slots.find((slot) => selectId === slot.id)!}
             buttonTitle="変更を保存"
           />
