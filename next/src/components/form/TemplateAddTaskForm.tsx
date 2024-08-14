@@ -2,7 +2,7 @@
 import useSWR from "swr";
 import { Box } from "@mui/system";
 import { TemplateAddTaskFields } from "./TemplateAddFields";
-import {  TemplateTaskResponse,TasksResponse } from "@/types/ResponseType";
+import { TemplateTaskResponse, TasksResponse } from "@/types/ResponseType";
 import { useEffect, useState } from "react";
 import { fetcher } from "@/axios";
 export const TemplateAddTaskForm = ({
@@ -13,13 +13,13 @@ export const TemplateAddTaskForm = ({
 }: {
   groupId: string;
   handleSubmit: (data: TemplateTaskResponse) => void;
-    templateTask: TemplateTaskResponse;
-    buttonTitle: string;
-  }) => {
-    const {
-      data: taskData,
-      error: taskError,
-      isLoading: taskIsLoading,
+  templateTask: TemplateTaskResponse;
+  buttonTitle: string;
+}) => {
+  const {
+    data: taskData,
+    error: taskError,
+    isLoading: taskIsLoading,
   } = useSWR<TasksResponse>(`/${groupId}/tasks/`, fetcher);
   const [formData, setTemplateTask] = useState<TemplateTaskResponse>();
   useEffect(() => {
@@ -28,16 +28,21 @@ export const TemplateAddTaskForm = ({
   if (!formData) {
     return null;
   }
-  
+
   if (taskError) return <div>error</div>;
   if (taskIsLoading) return <div>loading...</div>;
   if (!taskData) return <div>no data</div>;
+
+  const handleOnClick = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    handleSubmit(formData);
+  };
 
   return (
     <Box
       component="form"
       noValidate
-      onSubmit={() => handleSubmit(formData)}
+      onSubmit={handleOnClick}
       sx={{ mt: 3 }}
       maxWidth={500}
     >

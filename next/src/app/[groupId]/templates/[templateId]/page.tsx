@@ -32,7 +32,6 @@ export default function TemplateDetail({
   const last_date =1+ data.slots
     .map((slot) => slot.date_from_start)
     .reduce((a, b) => Math.max(a, b)); // => 10
-  console.log(last_date);
 
   return (
     <>

@@ -101,7 +101,7 @@ class TaskTemplate(Base):
 
     @hybrid_property
     def name(self):
-        return self.start_time.strftime("%m/%d %H時") + self.task.name
+        return self.start_time.strftime("%H時") + self.task.name
 
     @hybrid_property
     def end_time(self):

@@ -1,5 +1,5 @@
 "use client";
-import axios, { fetcher }from "@/axios";
+import axios, { fetcher } from "@/axios";
 import useSWR from "swr";
 import { TemplateResponse, TemplateTaskResponse } from "@/types/ResponseType";
 import {
@@ -23,7 +23,7 @@ export default function TemplateEdit({
 }: {
   params: { groupId: string; templateId: string };
 }) {
-  const { data, error, isLoading } = useSWR<TemplateResponse>(
+  const { data, error, isLoading, mutate } = useSWR<TemplateResponse>(
     `/${params.groupId}/templates/${params.templateId}`,
     fetcher
   );
@@ -38,7 +38,9 @@ export default function TemplateEdit({
       .delete(
         `/${params.groupId}/templates/${params.templateId}/tasks/${templateTaskId}`
       )
-      .then((response) => {})
+      .then((response) => {
+        mutate();
+      })
       .catch((err) => {});
   };
 
@@ -64,7 +66,10 @@ export default function TemplateEdit({
           start_time: templateTask.start_time,
         }
       )
-      .then((response) => {})
+      .then((response) => {
+        console.log(response);
+      })
+
       .catch((err) => {});
   };
 
@@ -85,15 +90,8 @@ export default function TemplateEdit({
             groupId={params.groupId}
             handleSubmit={handleTaskSubmit}
             templateTask={data.slots.find((slot) => selectId === slot.id)!}
-            buttonTitle='変更を保存'
+            buttonTitle="変更を保存"
           />
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={() => handleTaskRemove(selectId)}
-          >
-            削除
-          </Button>
         </>
       ) : (
         <TemplateAddTaskForm
@@ -106,7 +104,7 @@ export default function TemplateEdit({
             task_id: "",
             name: "",
           }}
-          buttonTitle='新規追加'
+          buttonTitle="新規追加"
         />
       )}
       <Grid container spacing={2}>
@@ -136,6 +134,7 @@ export default function TemplateEdit({
                       <TableCell>開始時刻</TableCell>
                       <TableCell>終了時刻</TableCell>
                       <TableCell></TableCell>
+                      <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -155,6 +154,15 @@ export default function TemplateEdit({
                               }}
                             >
                               編集
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => {
+                                handleTaskRemove(slot.id);
+                              }}
+                            >
+                              削除
                             </Button>
                           </TableCell>
                         </TableRow>
