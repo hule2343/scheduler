@@ -4,17 +4,6 @@ from pydantic import BaseModel, Field
 import datetime
 
 
-
-class TemplateDate(BaseModel):
-    year: int = Field(ge=2022)
-    month: int = Field(ge=1, le=12)
-    day: int = Field(ge=1, le=31)
-
-    class Config:
-        from_attributes = True
-
-
-
 class TemplateSlot(BaseModel):
     id: UUID
     name: str
@@ -68,7 +57,7 @@ class TemplateCreate(TemplateCreateBase):
         from_attributes = True
 
 class SlotByTemplate(BaseModel):
-    start_day: TemplateDate
+    start_day: datetime.date
 
     class Config:
         from_attributes = True

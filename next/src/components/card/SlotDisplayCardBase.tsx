@@ -44,9 +44,9 @@ export const SlotDisplayCardBase = ({
   const dateString = toDateString(slot.start_time);
   const assignees = slot.assignees.map((assignee) => assignee.name).join(", ");
   return (
-    <Card sx={{ minWidth: 240 }} variant="outlined" style={style}>
+    <Card sx={{ minWidth: 120 }} variant="outlined" style={style}>
       <CardContent>
-        <Typography variant="h5" component="div">
+        <Typography variant="h6" component="div">
           {slot.name}
         </Typography>
         <Typography variant="body1">

@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { TemplateAddTaskFields } from "@/components/form/TemplateAddFields";
+import { useRouter } from "next/navigation";
 export default function TemplateCreate({
   params,
 }: {
@@ -42,6 +43,7 @@ export default function TemplateCreate({
     task_id: "",
     name: "",
   });
+  const router=useRouter()
 
   if (taskError) return <div>error</div>;
   if (taskIsLoading) return <div>loading...</div>;
@@ -80,7 +82,7 @@ export default function TemplateCreate({
           };
         }),
       })
-      .then((response) => {})
+      .then((response) => {router.push(`/${params.groupId}/templates`)})
       .catch((err) => {
         console.log(err);
       });

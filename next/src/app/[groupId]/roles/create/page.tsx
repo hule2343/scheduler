@@ -4,16 +4,19 @@ import { Container, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import { RoleForm } from "@/components/form/RoleForm";
 import { useSnackbarContext } from "@/components/provider/SnackBar";
+import { useState } from "react";
+import { Permission } from "@/types/ResponseType";
 export default function RoleCreateForm({
   params,
 }: {
   params: { groupId: string };
 }) {
   const { showSnackbar } = useSnackbarContext();
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-
+    console.log(data.get("name"));
     axios
       .post(`${params.groupId}/roles/`, {
         name: data.get("name"),
@@ -29,7 +32,6 @@ export default function RoleCreateForm({
 
   const defaultData = {
     name: "",
-
   };
 
   return (
@@ -38,7 +40,11 @@ export default function RoleCreateForm({
         <Typography component="h1" variant="h5">
           ロールを新規作成
         </Typography>
-        <RoleForm data={defaultData} />
+        <RoleForm
+          data={defaultData}
+          permissions={permissions}
+          setPermissions={setPermissions}
+        />
       </Box>
     </Container>
   );

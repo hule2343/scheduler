@@ -65,6 +65,37 @@ export const MyDrawer = ({ groupId }: { groupId: string }) => {
             <ListItemText primary={"テンプレート"} />
           </ListItemButton>
         </ListItem>
+        <ListItem key={5} disablePadding>
+          <ListItemButton
+            onClick={() => router.replace(`/${groupId}/roles`)}
+          >
+            <ListItemIcon>
+              <InboxIcon />
+            </ListItemIcon>
+            <ListItemText primary={"ロール"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem key={6} disablePadding>
+          <ListItemButton
+            onClick={() => router.replace(`/${groupId}`)}
+          >
+            <ListItemIcon>
+              <InboxIcon />
+            </ListItemIcon>
+            <ListItemText primary={"募集中の仕事"} />
+          </ListItemButton>
+        </ListItem>
+        <ListItem key={7} disablePadding>
+          <ListItemButton
+            onClick={() => router.replace(`/`)}
+          >
+            <ListItemIcon>
+              <InboxIcon />
+            </ListItemIcon>
+            <ListItemText primary={"グループ選択画面へ"} />
+          </ListItemButton>
+        </ListItem>
+        
       </List>
       <Divider />
       <List>
