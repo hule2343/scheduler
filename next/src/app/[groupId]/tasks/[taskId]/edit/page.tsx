@@ -7,17 +7,19 @@ import axios, { fetcher } from "@/axios";
 import { TaskResponse } from "@/types/ResponseType";
 import useSWR from "swr";
 import { TaskForm } from "@/components/form/TaskForm";
+import { useSnackbarContext } from "@/components/provider/SnackBar";
+import Link from "next/link";
 
 export default function TaskEdit({
   params,
 }: {
   params: { groupId: string; taskId: string };
-}) {
+  }) {
+  const { showSnackbar } = useSnackbarContext();
   const { data, error, isLoading, mutate } = useSWR<TaskResponse>(
     `/${params.groupId}/tasks/${params.taskId}`,
     fetcher
   );
-
   if (error) return <div>error</div>;
   if (isLoading) return <div>loading...</div>;
   if (!data) return <div>no data</div>;
@@ -34,12 +36,14 @@ export default function TaskEdit({
         min_worker_num: data.get("min_worker_num"),
         exp_worker_num: data.get("exp_worker_num"),
         point: data.get("point"),
+        duration: parseInt(data.get("duration") as string) * 60,
       })
       .then((response) => {
-        //mutate();
+        mutate();
+        showSnackbar("success", "編集しました");
       })
       .catch((err) => {
-        console.log(err);
+        showSnackbar("error", "編集に失敗しました");
       });
   };
 
@@ -51,6 +55,8 @@ export default function TaskEdit({
         </Typography>
         <TaskForm data={data} />
       </Box>
+      <Link href={`/${params.groupId}/tasks`}>一覧へ戻る</Link>
+
     </Container>
   );
 }

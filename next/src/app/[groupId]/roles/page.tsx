@@ -1,6 +1,6 @@
 "use client";
 import useSWR from "swr";
-import { TasksResponse } from "@/types/ResponseType";
+import { RolesResponse } from "@/types/ResponseType";
 import {
   Button,
   Tab,
@@ -12,17 +12,17 @@ import {
 } from "@mui/material";
 import axios, { fetcher } from "@/axios";
 import Link from "next/link";
-export default function TaskList({ params }: { params: { groupId: string } }) {
-  const { data, error, mutate, isLoading } = useSWR<TasksResponse>(
-    `/${params.groupId}/tasks`,
+export default function RoleList({ params }: { params: { groupId: string } }) {
+  const { data, error, mutate, isLoading } = useSWR<RolesResponse>(
+    `/${params.groupId}/roles`,
     fetcher
   );
   if (error) return <div>error</div>;
   if (!data) return <div>no data</div>;
   if (isLoading) return <div>loading...</div>;
-  const handleOnClick = (task_id: string) => {
+  const handleOnClick = (role_id: string) => {
     axios
-      .delete(`/${params.groupId}/tasks/${task_id}`)
+      .delete(`/${params.groupId}/roles/${role_id}`)
       .then((res) => {
         mutate();
       })
@@ -34,25 +34,17 @@ export default function TaskList({ params }: { params: { groupId: string } }) {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>仕事名</TableCell>
-            <TableCell>ポイント</TableCell>
-            <TableCell>所要時間(分)</TableCell>
-            <TableCell></TableCell>
+            <TableCell>ロール名</TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.tasks.map((task) => (
+          {data.roles.map((task) => (
             <TableRow key={task.id}>
               <TableCell>{task.name}</TableCell>
-              <TableCell>{task.point}</TableCell>
-              <TableCell>{task.duration/60}</TableCell>
               <TableCell>
-                <Link href={`/${params.groupId}/tasks/${task.id}`}>詳細</Link>
-              </TableCell>
-              <TableCell>
-                <Link href={`/${params.groupId}/tasks/${task.id}/edit`}>
+                <Link href={`/${params.groupId}/roles/${task.id}/edit`}>
                   編集
                 </Link>
               </TableCell>
@@ -69,7 +61,7 @@ export default function TaskList({ params }: { params: { groupId: string } }) {
           ))}
         </TableBody>
       </Table>
-      <Link href={`/${params.groupId}/tasks/create`}>新規作成</Link>
+      <Link href={`/${params.groupId}/roles/create`}>新規作成</Link>
     </>
   );
 }

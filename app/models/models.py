@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import datetime
 import uuid
-from datetime import datetime, time, timedelta
 from uuid import uuid4
 
 from sqlalchemy import Column, ForeignKey, String, Table
@@ -36,7 +36,7 @@ class Slot(Base):
     __tablename__ = "slot"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(20))
-    start_time: Mapped[datetime]
+    start_time: Mapped[datetime.datetime]
     assignees: Mapped[None | list[User]] = relationship(
         secondary=slots_table, back_populates="slots"
     )
@@ -63,7 +63,9 @@ class Task(Base):
     min_worker_num: Mapped[int] = mapped_column(default=1)  # 最少人数
     exp_worker_num: Mapped[int] = mapped_column(default=0)  # 必要な経験者の人数
     point: Mapped[int] = mapped_column(default=0)
-    duration: Mapped[timedelta] = mapped_column(default=timedelta(hours=1))
+    duration: Mapped[datetime.timedelta] = mapped_column(
+        default=datetime.timedelta(hours=1)
+    )
     slots: Mapped[list[Slot] | None] = relationship(
         back_populates="task", cascade="all,delete"
     )
@@ -95,15 +97,18 @@ class TaskTemplate(Base):
     )
     task: Mapped[Task] = relationship(back_populates="tasktemplates")
     date_from_start: Mapped[int] = mapped_column(default=0)
-    start_time: Mapped[time]
+    start_time: Mapped[datetime.time]
 
     @hybrid_property
     def name(self):
-        return self.start_time.strftime("%m/%d %H時") + self.task.name
+        return self.start_time.strftime("%H時") + self.task.name
 
     @hybrid_property
     def end_time(self):
-        return self.start_time + self.task.duration
+        return (
+            datetime.datetime.combine(datetime.date.today(), self.start_time)
+            + self.task.duration
+        ).time()
 
 
 class Template(Base):
@@ -179,6 +184,7 @@ class GroupUser(Base):
     roles: Mapped[None | list[Role]] = relationship(
         secondary="roles_table", back_populates="users"
     )
+    is_admin: Mapped[bool] = mapped_column(default=False)
 
 
 class User(Base):

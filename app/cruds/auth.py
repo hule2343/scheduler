@@ -109,6 +109,9 @@ def check_privilege(
     if permission=="normal":
         return 
 
+    if group_user.is_admin:
+        return
+
     for role in group_user.roles:
         if getattr(role,permission):
             return

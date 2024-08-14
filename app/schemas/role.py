@@ -19,26 +19,11 @@ class RoleCreate(BaseModel):
         ]
     ]
 
-    
     class Config:
         from_attributes = True
         
-class RoleDisplay(BaseModel):
+class RoleDisplay(RoleCreate):
     id: str
-    name: str
-    permissions: list[
-        Literal[
-            "add_user",
-            "remove_user",
-            "edit_task", 
-            "edit_template",
-            "edit_role",
-            "change_user_role",
-            "edit_slot",
-            "add_slot_from_template",
-            "edit_point",
-        ]
-    ]
     
     class Config:
         from_attributes = True

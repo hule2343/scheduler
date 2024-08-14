@@ -56,23 +56,6 @@ export const TemplateAddTaskFields = ({
         />
       </Grid>
       <Grid item xs={12}>
-        <TextField
-          fullWidth
-          required
-          id="end_time"
-          label="終了時刻"
-          name="end_time"
-          type="time"
-          value={templateTask.end_time}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-            setTemplateTask({
-              ...templateTask,
-              end_time: event.target.value,
-            });
-          }}
-        />
-      </Grid>
-      <Grid item xs={12}>
         <SelectField
           data={tasks}
           title="仕事内容"

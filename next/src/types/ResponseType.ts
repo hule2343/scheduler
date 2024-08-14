@@ -7,13 +7,36 @@ export type ResponseBase = {
 };
 
 export type GroupResponse = ResponseBase & {
-  role: "super" | "normal" | "pending"| null;
+  role: ResponseBase[] | null;
+};
+
+export const permissions = [
+  "add_user",
+  "remove_user",
+  "edit_task",
+  "edit_template",
+  "edit_role",
+  "change_user_role",
+  "edit_slot",
+  "add_slot_from_template",
+  "edit_point",
+] as const;
+
+export type Permission = typeof permissions[number];
+
+export type RoleResponse = ResponseBase & {
+  permissions: Permission[];
+};
+
+export type RolesResponse = {
+  roles: RoleResponse[];
 };
 
 export type GroupUserResponse = GroupResponse & {
   room_number: string;
   point: number;
   is_active: boolean;
+  is_admin: boolean;
 };
 
 export type GroupUsersResponse = {
@@ -23,6 +46,10 @@ export type GroupUsersResponse = {
 export type UserResponse = ResponseBase & {
   room_number: string;
   is_active: boolean;
+};
+
+export type UsersResponse = {
+  users: UserResponse[];
 };
 
 export type UserDetailResponse = ResponseBase & {
@@ -42,6 +69,7 @@ export type TaskResponse = ResponseBase & {
   min_worker_num: number;
   exp_worker_num: number;
   point: number;
+  duration: number;
   creater_id: string;
   creater_name: string;
   group_id: string;
@@ -64,7 +92,6 @@ export type SlotResponse = ResponseBase & {
 export type TemplateTask = ResponseBase & {
   date_from_start: number;
   start_time: string;
-  end_time: string;
 };
 
 export type TemplateTaskResponse = TemplateTask & {

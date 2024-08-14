@@ -1,5 +1,5 @@
 "use client";
-import { fetcher } from "@/axios";
+import axios, { fetcher } from "@/axios";
 import useSWR from "swr";
 import { TemplateResponse, TemplateTaskResponse } from "@/types/ResponseType";
 import {
@@ -15,7 +15,6 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
-import axios from "axios";
 import { TemplateAddTaskForm } from "@/components/form/TemplateAddTaskForm";
 import { TemplateNameForm } from "@/components/form/TemplateNameForm";
 
@@ -24,7 +23,7 @@ export default function TemplateEdit({
 }: {
   params: { groupId: string; templateId: string };
 }) {
-  const { data, error, isLoading } = useSWR<TemplateResponse>(
+  const { data, error, isLoading, mutate } = useSWR<TemplateResponse>(
     `/${params.groupId}/templates/${params.templateId}`,
     fetcher
   );
@@ -39,35 +38,39 @@ export default function TemplateEdit({
       .delete(
         `/${params.groupId}/templates/${params.templateId}/tasks/${templateTaskId}`
       )
-      .then((response) => {})
+      .then((response) => {
+        mutate();
+      })
       .catch((err) => {});
   };
 
   const handleTaskAdd = (selectTemplateTask: TemplateTaskResponse) => {
     axios
       .post(`/${params.groupId}/templates/${params.templateId}/tasks`, {
-        date_from_start: Number(selectTemplateTask?.date_from_start) - 1,
+        date_from_start: Number(selectTemplateTask?.date_from_start),
         start_time: selectTemplateTask?.start_time,
-        end_time: selectTemplateTask?.end_time,
         id: selectTemplateTask?.task_id,
       })
-      .then((response) => {})
+      .then((response) => {mutate()})
       .catch((err) => {});
   };
 
-  const handleTaskSubmit = (templateTask: TemplateTaskResponse) => {
+  const handleTaskEdit = (templateTask: TemplateTaskResponse) => {
     if (!templateTask) return;
     axios
       .patch(
         `/${params.groupId}/templates/${params.templateId}/tasks/${templateTask?.id}`,
         {
           id: templateTask.task_id,
-          date_from_start: Number(templateTask.date_from_start) - 1,
+          date_from_start: Number(templateTask.date_from_start),
           start_time: templateTask.start_time,
-          end_time: templateTask.end_time,
         }
       )
-      .then((response) => {})
+      .then((response) => {
+        mutate()
+        
+      })
+
       .catch((err) => {});
   };
 
@@ -85,28 +88,24 @@ export default function TemplateEdit({
         <>
           {" "}
           <TemplateAddTaskForm
-            handleSubmit={handleTaskSubmit}
+            groupId={params.groupId}
+            handleSubmit={handleTaskEdit}
             templateTask={data.slots.find((slot) => selectId === slot.id)!}
+            buttonTitle="変更を保存"
           />
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={() => handleTaskRemove(selectId)}
-          >
-            削除
-          </Button>
         </>
       ) : (
         <TemplateAddTaskForm
+          groupId={params.groupId}
           handleSubmit={handleTaskAdd}
           templateTask={{
             id: "",
             date_from_start: 0,
             start_time: "08:00",
-            end_time: "09:00",
             task_id: "",
             name: "",
           }}
+          buttonTitle="新規追加"
         />
       )}
       <Grid container spacing={2}>
@@ -136,16 +135,17 @@ export default function TemplateEdit({
                       <TableCell>開始時刻</TableCell>
                       <TableCell>終了時刻</TableCell>
                       <TableCell></TableCell>
+                      <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {data.slots
                       .filter((slot) => slot.date_from_start === i)
+                      .sort((a, b) => a.start_time.localeCompare(b.start_time))
                       .map((slot, index) => (
                         <TableRow key={index} selected={selectId === slot.id}>
                           <TableCell>{slot.name}</TableCell>
                           <TableCell>{slot.start_time}</TableCell>
-                          <TableCell>{slot.end_time}</TableCell>
                           <TableCell>
                             <Button
                               onClick={() => {
@@ -155,6 +155,15 @@ export default function TemplateEdit({
                               }}
                             >
                               編集
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => {
+                                handleTaskRemove(slot.id);
+                              }}
+                            >
+                              削除
                             </Button>
                           </TableCell>
                         </TableRow>

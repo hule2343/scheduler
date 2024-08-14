@@ -18,7 +18,8 @@ async def group_user_list(
     user: User = Depends(get_current_active_user),
 ):
     check_privilege(group_id, user.id, "normal",db)
-    users = [group_user_display(user) for user in db.get(Group, group_id).users]
+    group=db.get(Group, group_id)
+    users = [group_user_display(user) for user in group.users]
     return {"users": users}
 
 

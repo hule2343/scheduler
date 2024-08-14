@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { TemplateAddTaskFields } from "@/components/form/TemplateAddFields";
+import { useRouter } from "next/navigation";
 export default function TemplateCreate({
   params,
 }: {
@@ -39,10 +40,10 @@ export default function TemplateCreate({
     id: "",
     date_from_start: 0,
     start_time: "08:00",
-    end_time: "09:00",
     task_id: "",
     name: "",
   });
+  const router=useRouter()
 
   if (taskError) return <div>error</div>;
   if (taskIsLoading) return <div>loading...</div>;
@@ -78,11 +79,10 @@ export default function TemplateCreate({
             id: task.id,
             date_from_start: task.date_from_start,
             start_time: task.start_time,
-            end_time: task.end_time,
           };
         }),
       })
-      .then((response) => {})
+      .then((response) => {router.push(`/${params.groupId}/templates`)})
       .catch((err) => {
         console.log(err);
       });
@@ -149,7 +149,6 @@ export default function TemplateCreate({
                     <TableRow>
                       <TableCell>名前</TableCell>
                       <TableCell>開始時刻</TableCell>
-                      <TableCell>終了時刻</TableCell>
                       <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
@@ -160,7 +159,6 @@ export default function TemplateCreate({
                         <TableRow key={index}>
                           <TableCell>{slot.name}</TableCell>
                           <TableCell>{slot.start_time}</TableCell>
-                          <TableCell>{slot.end_time}</TableCell>
                           <TableCell>
                             <Button onClick={() => handleTaskRemove(slot)}>
                               削除

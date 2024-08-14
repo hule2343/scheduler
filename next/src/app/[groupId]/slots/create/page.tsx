@@ -29,7 +29,6 @@ export default function SlotCreate({
     id: "",
     name: "",
     start_time: new Date().toISOString(),
-    end_time: new Date().toISOString(),
     creater_id: "",
     creater_name: "",
     assignees: [],

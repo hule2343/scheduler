@@ -3,10 +3,15 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.cruds.auth import get_admin_user
-from app.cruds.response import response_base, user_detail_display, user_display
+from app.cruds.response import (
+    group_display,
+    response_base,
+    user_detail_display,
+    user_display,
+)
 from app.cruds.user import create_admin
 from app.database import get_db
-from app.models.models import Group, GroupUser, User
+from app.models.models import Group, GroupUser, Role, User
 from app.router.user import group_user_display
 from app.schemas.admin import AddSuperUserRequest, GroupPostRequest
 from app.schemas.users import AdminUserCreate, AdminUserPatch
@@ -73,6 +78,21 @@ async def admin_user_patch(
     return user_display(user)
 
 
+@router.delete("/users/{user_id}")
+async def admin_user_delete(
+    user_id: str,
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    db.delete(user)
+    db.commit()
+    return user_display(user)
+
+
 @router.get("/groups")
 async def group_list(
     db: Session = Depends(get_db),
@@ -90,6 +110,22 @@ async def create_group(
     db.add(group)
     db.commit()
     db.refresh(group)
+    role = Role(
+        name="管理者",
+        group_id=group.id,
+        add_user=True,
+        remove_user=True,
+        edit_task=True,
+        edit_template=True,
+        edit_role=True,
+        change_user_role=True,
+        edit_slot=True,
+        add_slot_from_template=True,
+        edit_point=True,
+    )
+    db.add(role)
+    db.commit()
+    db.refresh(role)
     return response_base(group)
 
 
@@ -122,11 +158,35 @@ async def delete_group(group_id: str, db: Session = Depends(get_db)):
     group = db.get(Group, group_id)
     db.delete(group)
     db.commit()
-    return group
+    return group_display(group)
 
 
 @router.post("/groups/{group_id}/adduser")
 async def create_superuser(
+    group_id: str, request: AddSuperUserRequest, db: Session = Depends(get_db)
+):
+    response_users = []
+    for user_id in request.users:
+        group_user = db.scalars(
+            select(GroupUser).filter_by(user_id=user_id, group_id=group_id).limit(1)
+        ).first()
+        if not group_user:
+            group_user = GroupUser(user_id=user_id, group_id=group_id, is_admin=True)
+            db.add(group_user)
+            db.commit()
+            db.refresh(group_user)
+            response_users.append(group_user)
+            continue
+        group_user.is_admin = True
+        db.commit()
+        db.refresh(group_user)
+        response_users.append(group_user)
+
+    return {"users": [group_user_display(user) for user in response_users]}
+
+
+@router.post("/groups/{group_id}/user")
+async def add_user_to_group(
     group_id: str, request: AddSuperUserRequest, db: Session = Depends(get_db)
 ):
     response_users = []
@@ -141,8 +201,6 @@ async def create_superuser(
             db.refresh(group_user)
             response_users.append(group_user)
             continue
-        db.commit()
-        db.refresh(group_user)
         response_users.append(group_user)
 
     return {"users": [group_user_display(user) for user in response_users]}

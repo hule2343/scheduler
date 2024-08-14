@@ -1,6 +1,6 @@
-'use client'
+"use client";
 import useSWR from "swr";
-import {ResponseBase} from "@/types/ResponseType";
+import { ResponseBase } from "@/types/ResponseType";
 import {
   Table,
   TableBody,
@@ -29,6 +29,7 @@ export default function AdminGroupList() {
             <TableCell></TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
+            <TableCell></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -43,9 +44,10 @@ export default function AdminGroupList() {
                   <Link href={`groups/${group.id}/delete`}>削除</Link>
                 </TableCell>
                 <TableCell>
-                  <Link href={`groups/${group.id}/adduser`}>
-                    スーパーユーザー追加
-                  </Link>
+                  <Link href={`groups/${group.id}/addadmin`}>管理者追加</Link>
+                </TableCell>
+                <TableCell>
+                  <Link href={`groups/${group.id}/adduser`}>ユーザー追加</Link>
                 </TableCell>
               </TableRow>
             );

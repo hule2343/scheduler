@@ -27,7 +27,13 @@ def group_list(
             response.append({"id": group.id, "name": group.name, "role": None})
         else:
             response.append(
-                {"id": group.id, "name": group.name, "role": [role.name for role in group_user.roles]}
+                {
+                    "id": group.id,
+                    "name": group.name,
+                    "role": [
+                        {"id": role.id, "name": role.name} for role in group_user.roles
+                    ],
+                }
             )
 
     return {"groups": response}

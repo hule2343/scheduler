@@ -18,11 +18,8 @@ def post(group_id:str,template: TemplateCreate, db: Session):
                 hour=req_task.start_time.hour,
                 minute=req_task.start_time.minute,
             ),
-            end_time=time(
-                hour=req_task.end_time.hour, minute=req_task.end_time.minute
-            ),
         )
-        db_template.tasktemplates.append(db_task)
+        db_template.tasktemplates.append(db_task) 
     db.add(db_template)
     db.commit()
     db.refresh(db_template)
@@ -38,7 +35,6 @@ def generate_slots(
     for task in tasks:
         date = start_day+timedelta(days=task.date_from_start)
         start = datetime.combine(date, task.start_time)
-        end = datetime.combine(date, task.end_time)
         name = (
             str(start.hour)
             + "時"
@@ -51,7 +47,6 @@ def generate_slots(
             name=name,
             task_id=task.task_id,
             start_time=start,
-            end_time=end,
         )
         slots.append(slot)
     db.bulk_save_objects(slots)
