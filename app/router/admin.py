@@ -177,7 +177,7 @@ async def create_superuser(
             db.refresh(group_user)
             response_users.append(group_user)
             continue
-        group_user.is_admin = True
+        group_user.is_owner = True
         db.commit()
         db.refresh(group_user)
         response_users.append(group_user)
