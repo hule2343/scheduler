@@ -43,7 +43,7 @@ export default function TemplateCreate({
     task_id: "",
     name: "",
   });
-  const router=useRouter()
+  const router = useRouter();
 
   if (taskError) return <div>error</div>;
   if (taskIsLoading) return <div>loading...</div>;
@@ -82,7 +82,9 @@ export default function TemplateCreate({
           };
         }),
       })
-      .then((response) => {router.push(`/${params.groupId}/templates`)})
+      .then((response) => {
+        router.push(`/${params.groupId}/templates`);
+      })
       .catch((err) => {
         console.log(err);
       });
@@ -155,6 +157,7 @@ export default function TemplateCreate({
                   <TableBody>
                     {data
                       .filter((slot) => slot.date_from_start === i)
+                      .sort((a, b) => a.start_time.localeCompare(b.start_time))
                       .map((slot, index) => (
                         <TableRow key={index}>
                           <TableCell>{slot.name}</TableCell>

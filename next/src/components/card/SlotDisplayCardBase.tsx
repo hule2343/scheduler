@@ -3,8 +3,9 @@ import * as React from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
-import Button from "@mui/material/Button";
+import Link from "next/link";
 import Typography from "@mui/material/Typography";
+import { usePathname } from "next/navigation";
 
 export const toDatetimeString = (time: string) => {
   return new Date(time).toLocaleString("ja-JP", {
@@ -39,6 +40,7 @@ export const SlotDisplayCardBase = ({
   children: React.ReactNode;
   style: React.CSSProperties;
 }) => {
+  const path = usePathname();
   const startTimeString = toTimeString(slot.start_time);
   const endTimeString = toTimeString(slot.end_time);
   const dateString = toDateString(slot.start_time);
@@ -47,7 +49,7 @@ export const SlotDisplayCardBase = ({
     <Card sx={{ minWidth: 120 }} variant="outlined" style={style}>
       <CardContent>
         <Typography variant="h6" component="div">
-          {slot.name}
+          <Link href={path + "/slots/" + slot.id}>{slot.name}</Link>
         </Typography>
         <Typography variant="body1">
           {dateString}: {startTimeString} 〜{endTimeString}

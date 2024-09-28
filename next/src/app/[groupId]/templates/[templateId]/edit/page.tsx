@@ -51,7 +51,9 @@ export default function TemplateEdit({
         start_time: selectTemplateTask?.start_time,
         id: selectTemplateTask?.task_id,
       })
-      .then((response) => {mutate()})
+      .then((response) => {
+        mutate();
+      })
       .catch((err) => {});
   };
 
@@ -67,8 +69,7 @@ export default function TemplateEdit({
         }
       )
       .then((response) => {
-        mutate()
-        
+        mutate();
       })
 
       .catch((err) => {});
@@ -107,6 +108,19 @@ export default function TemplateEdit({
           }}
           buttonTitle="新規追加"
         />
+      )}
+      {selectId ? (
+        <Grid item xs={12}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => setId(undefined)}
+          >
+            +新規追加
+          </Button>
+        </Grid>
+      ) : (
+        <></>
       )}
       <Grid container spacing={2}>
         {new Array(
@@ -173,19 +187,6 @@ export default function TemplateEdit({
               </Paper>
             </Grid>
           ))}
-        {selectId ? (
-          <Grid item xs={12}>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={() => setId(undefined)}
-            >
-              +新規追加
-            </Button>
-          </Grid>
-        ) : (
-          <></>
-        )}
       </Grid>
     </>
   );
