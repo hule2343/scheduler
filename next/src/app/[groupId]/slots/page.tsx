@@ -28,8 +28,27 @@ export default function SlotList({ params }: { params: { groupId: string } }) {
       })
       .catch((err) => {});
   };
+  const handleOnDeletePrune = () => {
+    axios
+      .delete(`/${params.groupId}/slots`, {
+        params: {
+          expired: true,
+        },
+      })
+      .then((res) => {
+        mutate();
+      })
+      .catch((err) => {});
+  };
   return (
     <>
+      <Button
+        onClick={() => {
+          handleOnDeletePrune();
+        }}
+      >
+        不要なシフトを削除
+      </Button>
       <Table>
         <TableHead>
           <TableRow>
@@ -61,7 +80,13 @@ export default function SlotList({ params }: { params: { groupId: string } }) {
                   <Link href={`slots/${slot.id}/edit`}>編集</Link>
                 </TableCell>
                 <TableCell>
-                  <Button onClick={() => {handleOnClick(slot.id)}}>削除</Button>
+                  <Button
+                    onClick={() => {
+                      handleOnClick(slot.id);
+                    }}
+                  >
+                    削除
+                  </Button>
                 </TableCell>
               </TableRow>
             );
