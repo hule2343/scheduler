@@ -16,7 +16,6 @@ export const SlotDisplayCardAssign = ({
     slots: SlotResponse[];
   }>;
 }) => {
-  const path = usePathname();
   const groupId = useParams().groupId;
   const handleCancel = (slot_id: string) => {
     axios
@@ -28,14 +27,12 @@ export const SlotDisplayCardAssign = ({
   };
   return (
     <SlotDisplayCardBase slot={slot} style={{ backgroundColor: "#bdbdbd" }}>
-      <Link href={path + "/slots/" + slot.id}>詳細</Link>
       <Button onClick={() => handleCancel(slot.id)}>キャンセル</Button>
     </SlotDisplayCardBase>
   );
 };
 
 export const SlotDisplayCardUnassign = ({ slot }: { slot: SlotResponse }) => {
-  const path = usePathname();
   const groupId = useParams().groupId;
   const [isAssigned, setAssigned] = React.useState(false);
   const assignSlot = () => {
@@ -48,7 +45,6 @@ export const SlotDisplayCardUnassign = ({ slot }: { slot: SlotResponse }) => {
   };
   return (
     <SlotDisplayCardBase slot={slot} style={{ backgroundColor: "white" }}>
-      <Link href={path + "/slots/" + slot.id}>詳細</Link>
       {isAssigned ? (
         <CheckIcon />
       ) : (

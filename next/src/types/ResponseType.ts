@@ -22,7 +22,7 @@ export const permissions = [
   "edit_point",
 ] as const;
 
-export type Permission = typeof permissions[number];
+export type Permission = (typeof permissions)[number];
 
 export type RoleResponse = ResponseBase & {
   permissions: Permission[];
@@ -36,7 +36,7 @@ export type GroupUserResponse = GroupResponse & {
   room_number: string;
   point: number;
   is_active: boolean;
-  is_admin: boolean;
+  is_owner: boolean;
 };
 
 export type GroupUsersResponse = {

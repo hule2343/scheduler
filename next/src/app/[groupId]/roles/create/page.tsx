@@ -20,7 +20,7 @@ export default function RoleCreateForm({
     axios
       .post(`${params.groupId}/roles/`, {
         name: data.get("name"),
-        permissions: data.getAll("permissions"),
+        permissions: permissions,
       })
       .then((response) => {
         showSnackbar("success", "作成しました");
@@ -41,7 +41,7 @@ export default function RoleCreateForm({
           ロールを新規作成
         </Typography>
         <RoleForm
-          data={defaultData}
+          name={defaultData.name}
           permissions={permissions}
           setPermissions={setPermissions}
         />

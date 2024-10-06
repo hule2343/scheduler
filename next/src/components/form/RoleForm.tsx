@@ -1,24 +1,36 @@
-import { Permission, RoleResponse, permissions } from "@/types/ResponseType";
+import { Permission, RoleResponse } from "@/types/ResponseType";
 import { Checkbox, FormControlLabel, FormGroup, Grid } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 export const RoleForm = ({
-  data,
+  name,
   permissions,
   setPermissions,
 }: {
-  data: { name: string };
+  name: string;
   permissions: Permission[];
   setPermissions: Dispatch<SetStateAction<Permission[]>>;
 }) => {
-  const onChecked = (value: Permission) => {
-    if (permissions.some(value)) {
-      setPermissions(permissions.filter((permission) => permission !== value));
-    } else {
-      setPermissions([...permissions, value]);
-    }
+  const RoleCheckbox = ({ permission }: { permission: Permission }) => {
+    const onChecked = (value: Permission) => {
+      if (permissions.includes(value)) {
+        setPermissions(
+          permissions.filter((permission) => permission !== value)
+        );
+      } else {
+        setPermissions([...permissions, value]);
+      }
+    };
+
+    return (
+      <Checkbox
+        value={permission}
+        checked={permissions.includes(permission)}
+        onChange={(event) => onChecked(permission)}
+      />
+    );
   };
   return (
     <Grid container spacing={2}>
@@ -30,90 +42,45 @@ export const RoleForm = ({
           id="name"
           label="名前"
           autoFocus
-          defaultValue={data.name}
+          defaultValue={name}
         />
       </Grid>
       <Grid item xs={12}>
         <FormGroup>
           <FormControlLabel
-            control={
-              <Checkbox
-                value="add_user"
-                onChange={() => onChecked("add_user")}
-              />
-            }
+            control={<RoleCheckbox permission="add_user" />}
             label="グループへのユーザーの追加"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                value="remove_user"
-                onChange={() => onChecked("remove_user")}
-              />
-            }
+            control={<RoleCheckbox permission="remove_user" />}
             label="グループのユーザーの削除"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                value="edit_task"
-                onChange={() => onChecked("edit_task")}
-              />
-            }
+            control={<RoleCheckbox permission="edit_task" />}
             label="タスクの編集"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                value="edit_template"
-                onChange={() => onChecked("edit_template")}
-              />
-            }
+            control={<RoleCheckbox permission="edit_template" />}
             label="テンプレートの編集"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                value="edit_role"
-                onChange={() => onChecked("edit_role")}
-              />
-            }
+            control={<RoleCheckbox permission="edit_role" />}
             label="ロールの編集"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                value="change_user_role"
-                onChange={() => onChecked("change_user_role")}
-              />
-            }
+            control={<RoleCheckbox permission="change_user_role" />}
             label="ユーザーのロールの変更"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                value="edit_slot"
-                onChange={() => onChecked("edit_slot")}
-              />
-            }
+            control={<RoleCheckbox permission="edit_slot" />}
             label="仕事の編集"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                value="add_slot_from_template"
-                onChange={() => onChecked("add_slot_from_template")}
-              />
-            }
+            control={<RoleCheckbox permission="add_slot_from_template" />}
             label="テンプレートから募集"
           />
           <FormControlLabel
-            control={
-              <Checkbox
-                value="edit_point"
-                onChange={() => onChecked("edit_point")}
-              />
-            }
+            control={<RoleCheckbox permission="edit_point" />}
             label="ユーザーのポイントの変更"
           />
         </FormGroup>
