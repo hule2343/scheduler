@@ -60,7 +60,7 @@ export default function AdminAddSuperUser({
                 <TableRow key={user.id}>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.room_number}</TableCell>
-                  <TableCell>{user.is_admin ? "管理者" : "一般"}</TableCell>
+                  <TableCell>{user.is_owner ? "管理者" : "一般"}</TableCell>
                   <TableCell>
                     <FormControlLabel
                       control={
@@ -68,7 +68,7 @@ export default function AdminAddSuperUser({
                           id="addUser"
                           name="addUser"
                           value={user.id}
-                          defaultChecked={user.is_admin}
+                          defaultChecked={user.is_owner}
                           inputProps={{ "aria-label": "controlled" }}
                         />
                       }

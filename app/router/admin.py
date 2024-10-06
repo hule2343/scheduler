@@ -9,11 +9,11 @@ from app.cruds.response import (
     user_detail_display,
     user_display,
 )
-from app.cruds.user import create_admin
+from app.cruds.user import create_user
 from app.database import get_db
-from app.models.models import Group, GroupUser, Role, User
+from app.models.models import Group, GroupUser, User
 from app.router.user import group_user_display
-from app.schemas.admin import AddSuperUserRequest, GroupPostRequest
+from app.schemas.admin import AddUserRequest, GroupPostRequest
 from app.schemas.users import AdminUserCreate, AdminUserPatch
 
 router = APIRouter(
@@ -34,7 +34,7 @@ async def admin_user_register(
     request: AdminUserCreate,
     db: Session = Depends(get_db),
 ):
-    generated_user = create_admin(request, db)
+    generated_user = create_user(request, db)
     if not generated_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -110,22 +110,7 @@ async def create_group(
     db.add(group)
     db.commit()
     db.refresh(group)
-    role = Role(
-        name="管理者",
-        group_id=group.id,
-        add_user=True,
-        remove_user=True,
-        edit_task=True,
-        edit_template=True,
-        edit_role=True,
-        change_user_role=True,
-        edit_slot=True,
-        add_slot_from_template=True,
-        edit_point=True,
-    )
-    db.add(role)
-    db.commit()
-    db.refresh(role)
+
     return response_base(group)
 
 
@@ -162,8 +147,8 @@ async def delete_group(group_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/groups/{group_id}/adduser")
-async def create_superuser(
-    group_id: str, request: AddSuperUserRequest, db: Session = Depends(get_db)
+async def create_owneruser(
+    group_id: str, request: AddUserRequest, db: Session = Depends(get_db)
 ):
     response_users = []
     for user_id in request.users:
@@ -171,7 +156,7 @@ async def create_superuser(
             select(GroupUser).filter_by(user_id=user_id, group_id=group_id).limit(1)
         ).first()
         if not group_user:
-            group_user = GroupUser(user_id=user_id, group_id=group_id, is_admin=True)
+            group_user = GroupUser(user_id=user_id, group_id=group_id, is_owner=True)
             db.add(group_user)
             db.commit()
             db.refresh(group_user)
@@ -180,27 +165,6 @@ async def create_superuser(
         group_user.is_owner = True
         db.commit()
         db.refresh(group_user)
-        response_users.append(group_user)
-
-    return {"users": [group_user_display(user) for user in response_users]}
-
-
-@router.post("/groups/{group_id}/user")
-async def add_user_to_group(
-    group_id: str, request: AddSuperUserRequest, db: Session = Depends(get_db)
-):
-    response_users = []
-    for user_id in request.users:
-        group_user = db.scalars(
-            select(GroupUser).filter_by(user_id=user_id, group_id=group_id).limit(1)
-        ).first()
-        if not group_user:
-            group_user = GroupUser(user_id=user_id, group_id=group_id)
-            db.add(group_user)
-            db.commit()
-            db.refresh(group_user)
-            response_users.append(group_user)
-            continue
         response_users.append(group_user)
 
     return {"users": [group_user_display(user) for user in response_users]}

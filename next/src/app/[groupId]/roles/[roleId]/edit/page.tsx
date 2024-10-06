@@ -8,6 +8,7 @@ import { Permission, RoleResponse } from "@/types/ResponseType";
 import useSWR from "swr";
 import { RoleForm } from "@/components/form/RoleForm";
 
+
 export default function RoleEdit({
   params,
 }: {
@@ -38,7 +39,7 @@ export default function RoleEdit({
         permissions: permissions,
       })
       .then((response) => {
-        //mutate();
+        mutate();
       })
       .catch((err) => {
         console.log(err);
@@ -53,9 +54,12 @@ export default function RoleEdit({
         </Typography>
         <RoleForm
           name={data.name}
-          permissions={data.permissions}
+          permissions={permissions}
           setPermissions={setPermissions}
         />
+        {permissions.map((permission) => (
+          <li>{permission}</li>
+        ))}
       </Box>
     </Container>
   );

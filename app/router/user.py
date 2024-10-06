@@ -3,10 +3,10 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from app.cruds.auth import check_privilege, get_current_active_user
-from app.cruds.response import group_user_display
+from app.cruds.response import group_user_display, user_display
 from app.database import get_db
-from app.models.models import Group, GroupUser, User,Role
-from app.schemas.users import GroupUsers, UsersAddRequest, UserDisplay, UserRolesChange
+from app.models.models import Group, GroupUser, Role, User
+from app.schemas.users import GroupUsers, UserDisplay, UserRolesChange, UsersAddRequest
 
 router = APIRouter()
 
@@ -16,9 +16,22 @@ async def group_user_list(
     group_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
+    room_number: str | None = None,
 ):
-    check_privilege(group_id, user.id, "normal",db)
-    group=db.get(Group, group_id)
+    if room_number:
+        check_privilege(group_id, user.id, "add_user", db)
+        users = db.scalars(
+            select(User).filter(User.room_number.like(f"%{room_number}%"))
+        ).all()
+        return {"users": [user_display(user) for user in users]}
+
+    check_privilege(group_id, user.id, "normal", db)
+    group = db.get(Group, group_id)
+    if not group:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="対象のグループが見つかりません",
+        )
     users = [group_user_display(user) for user in group.users]
     return {"users": users}
 
@@ -27,10 +40,10 @@ async def group_user_list(
 async def add_users(
     group_id: str,
     request: UsersAddRequest,
-    db:Session = Depends(get_db),
+    db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "add_user",db)
+    check_privilege(group_id, user.id, "add_user", db)
     group = db.get(Group, group_id)
     for user_id in request.user_ids:
         target_user = db.scalars(
@@ -46,6 +59,23 @@ async def add_users(
     return {"users": [group_user_display(user) for user in group.users]}
 
 
+@router.get("/search")
+async def add_group_user_list(
+    group_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_active_user),
+    room_number: str | None = None,
+):
+    if not room_number:
+        return {"users": []}
+    check_privilege(group_id, user.id, "add_user", db)
+    users = db.scalars(
+        select(User).filter(User.room_number.like(f"%{room_number}%"))
+    ).all()
+    return {"users": [user_display(user) for user in users]}
+
+
+
 @router.delete("/{user_id}")
 async def delete_groupuser(
     group_id: str,
@@ -53,7 +83,7 @@ async def delete_groupuser(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "remove_user",db)
+    check_privilege(group_id, user.id, "remove_user", db)
 
     target_user = db.scalars(
         select(GroupUser)
@@ -78,7 +108,7 @@ async def change_user_role(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_active_user),
 ):
-    check_privilege(group_id, user.id, "change_user_role",db)
+    check_privilege(group_id, user.id, "change_user_role", db)
 
     target_user = db.scalars(
         select(GroupUser)
@@ -92,14 +122,14 @@ async def change_user_role(
         )
     new_roles = []
     for role_id in request.role_ids:
-        role=db.get(Role, role_id)
+        role = db.get(Role, role_id)
         if not role:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="対象のロールが見つかりません",
             )
         new_roles.append(role)
-    target_user.roles= new_roles
+    target_user.roles = new_roles
     db.commit()
     db.refresh(target_user)
     return group_user_display(target_user)

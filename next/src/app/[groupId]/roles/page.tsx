@@ -40,6 +40,11 @@ export default function RoleList({ params }: { params: { groupId: string } }) {
           </TableRow>
         </TableHead>
         <TableBody>
+          <TableRow>
+            <TableCell>グループ管理者</TableCell>
+            <TableCell>編集不可</TableCell>
+            <TableCell>削除不可</TableCell>
+          </TableRow>
           {data.roles.map((task) => (
             <TableRow key={task.id}>
               <TableCell>{task.name}</TableCell>

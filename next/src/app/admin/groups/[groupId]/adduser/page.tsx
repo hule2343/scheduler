@@ -37,8 +37,8 @@ export default function AddUserForm({
   const handleAddUser = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     axios
-      .post(`/admin/groups/${params.groupId}/user`, {
-        users: userIds,
+      .post(`/${params.groupId}/users`, {
+        user_ids: userIds,
       })
       .then((res) => {
         mutate();

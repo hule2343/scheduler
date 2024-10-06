@@ -13,10 +13,9 @@ import {
 import axios, { fetcher } from "@/axios";
 
 export default function UserList({ params }: { params: { groupId: string } }) {
-  const { data, error, isLoading } = useSWR<{ users: GroupUserResponse[] }>(
-    `/${params.groupId}/users`,
-    fetcher
-  );
+  const { data, error, isLoading, mutate } = useSWR<{
+    users: GroupUserResponse[];
+  }>(`/${params.groupId}/users`, fetcher);
   if (error) return <div>error</div>;
   if (!data) return <div>no data</div>;
   if (isLoading) return <div>loading...</div>;
@@ -24,7 +23,9 @@ export default function UserList({ params }: { params: { groupId: string } }) {
   const handleUserRemove = (userId: string) => {
     axios
       .delete(`${params.groupId}/users/${userId}`)
-      .then((res) => {})
+      .then((res) => {
+        mutate();
+      })
       .catch((error) => {});
   };
 
@@ -65,6 +66,7 @@ export default function UserList({ params }: { params: { groupId: string } }) {
             })}
         </TableBody>
       </Table>
+      <Button href={`/${params.groupId}/users/create`}>ユーザー追加</Button>
     </>
   );
 }

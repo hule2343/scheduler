@@ -30,7 +30,7 @@ def get(name: str, db: Session):
     return response_user
 
 
-def create_admin(user: AdminUserCreate, db: Session):
+def create_user(user: AdminUserCreate, db: Session):
     user.password = get_password_hash(user.password)
     user = User(
         name=user.name,

@@ -2,7 +2,7 @@ import { Permission, RoleResponse } from "@/types/ResponseType";
 import { Checkbox, FormControlLabel, FormGroup, Grid } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 export const RoleForm = ({
   name,
@@ -13,21 +13,22 @@ export const RoleForm = ({
   permissions: Permission[];
   setPermissions: Dispatch<SetStateAction<Permission[]>>;
 }) => {
-  const onChecked = (value: Permission) => {
-    if (permissions.some((permission) => permission === value)) {
-      setPermissions(permissions.filter((permission) => permission !== value));
-    } else {
-      setPermissions([...permissions, value]);
-    }
-  };
   const RoleCheckbox = ({ permission }: { permission: Permission }) => {
+    const onChecked = (value: Permission) => {
+      if (permissions.includes(value)) {
+        setPermissions(
+          permissions.filter((permission) => permission !== value)
+        );
+      } else {
+        setPermissions([...permissions, value]);
+      }
+    };
+
     return (
       <Checkbox
         value={permission}
-        checked={permissions.some(
-          (defaultPermission) => defaultPermission === permission
-        )}
-        onChange={() => onChecked(permission)}
+        checked={permissions.includes(permission)}
+        onChange={(event) => onChecked(permission)}
       />
     );
   };

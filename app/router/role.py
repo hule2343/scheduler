@@ -64,8 +64,16 @@ async def update_role(
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
     role.name = request.name
-    for permission in Role.__table__.columns.keys():
-        setattr(role, permission, False)
+    role.add_user = False
+    role.remove_user = False
+    role.edit_task = False
+    role.edit_template = False
+    role.edit_role = False
+    role.change_user_role = False
+    role.edit_slot = False
+    role.add_slot_from_template = False
+    role.edit_point = False
+
     for permission in request.permissions:
         setattr(role, permission, True)
     db.commit()
